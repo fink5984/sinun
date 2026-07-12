@@ -2,8 +2,10 @@ package com.sinun.agent.ui
 
 import android.app.Activity
 import android.content.Intent
+import android.net.Uri
 import android.net.VpnService
 import android.os.Bundle
+import android.provider.Settings
 import android.text.InputType
 import android.widget.Button
 import android.widget.EditText
@@ -16,7 +18,9 @@ import androidx.lifecycle.lifecycleScope
 import com.sinun.agent.BuildConfig
 import com.sinun.agent.R
 import com.sinun.agent.SinunApp
+import com.sinun.agent.admin.SinunDeviceAdminReceiver
 import com.sinun.agent.data.PolicyState
+import com.sinun.agent.monitor.AppMonitor
 import com.sinun.agent.vpn.FilterVpnService
 import com.sinun.agent.work.HeartbeatWorker
 import kotlinx.coroutines.launch
@@ -47,6 +51,18 @@ class MainActivity : AppCompatActivity() {
 
         findViewById<Button>(R.id.btn_start_vpn).setOnClickListener { requestVpn() }
         findViewById<Button>(R.id.btn_request_opening).setOnClickListener { sendDemoOpeningRequest() }
+        findViewById<Button>(R.id.btn_usage_access).setOnClickListener {
+            startActivity(Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS))
+        }
+        findViewById<Button>(R.id.btn_overlay).setOnClickListener {
+            startActivity(Intent(
+                Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                Uri.parse("package:$packageName"),
+            ))
+        }
+        findViewById<Button>(R.id.btn_device_admin).setOnClickListener {
+            startActivity(SinunDeviceAdminReceiver.activationIntent(this))
+        }
 
         HeartbeatWorker.schedule(this)
         if (repo.isEnrolled) loadPolicy() else promptForEnrollmentCode()
@@ -55,6 +71,26 @@ class MainActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         renderStatus()
+        renderPermissions()
+    }
+
+    /** מציג אילו הרשאות ל-App Control כבר הוענקו. שתיהן נדרשות למסך החסימה. */
+    private fun renderPermissions() {
+        val usage = AppMonitor.hasUsageAccess(this)
+        val overlay = Settings.canDrawOverlays(this)
+        findViewById<Button>(R.id.btn_usage_access).apply {
+            text = getString(if (usage) R.string.perm_usage else R.string.perm_usage_missing)
+            isEnabled = !usage
+        }
+        findViewById<Button>(R.id.btn_overlay).apply {
+            text = getString(if (overlay) R.string.perm_overlay else R.string.perm_overlay_missing)
+            isEnabled = !overlay
+        }
+        val admin = SinunDeviceAdminReceiver.isActive(this)
+        findViewById<Button>(R.id.btn_device_admin).apply {
+            text = getString(if (admin) R.string.perm_admin else R.string.perm_admin_missing)
+            isEnabled = !admin
+        }
     }
 
     /** מסך ההצטרפות: הלקוח מזין את הקוד החד-פעמי שקיבל מהמנהל. */

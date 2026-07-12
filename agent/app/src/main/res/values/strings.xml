@@ -17,4 +17,11 @@
     <string name="enroll_code_hint">לדוגמה: ABCD2345</string>
     <string name="enroll_confirm">חבר</string>
     <string name="enroll_failed">חיבור נכשל: %1$s</string>
+    <string name="perms_title">הרשאות לחסימת אפליקציות (App Control)</string>
+    <string name="perm_usage">✔ גישה לנתוני שימוש</string>
+    <string name="perm_usage_missing">① אשר גישה לנתוני שימוש</string>
+    <string name="perm_overlay">✔ הצגה מעל אפליקציות</string>
+    <string name="perm_overlay_missing">② אשר הצגה מעל אפליקציות</string>
+    <string name="perm_admin">✔ הגנה מפני הסרה פעילה</string>
+    <string name="perm_admin_missing">③ הפעל הגנה מפני הסרה</string>
 </resources>

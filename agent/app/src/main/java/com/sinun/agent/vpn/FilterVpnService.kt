@@ -13,6 +13,8 @@ import com.sinun.agent.engine.FilterEvent
 import com.sinun.agent.engine.FilterEventSink
 import com.sinun.agent.engine.net.ConnectionAttributor
 import com.sinun.agent.engine.policy.PolicyEngine
+import com.sinun.agent.monitor.AppMonitor
+import com.sinun.agent.ui.BlockOverlay
 import com.sinun.agent.ui.MainActivity
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -35,6 +37,8 @@ class FilterVpnService : VpnService(), FilterEventSink {
 
     private var tun: ParcelFileDescriptor? = null
     private var dnsProxy: DnsProxy? = null
+    private var appMonitor: AppMonitor? = null
+    private var blockOverlay: BlockOverlay? = null
     private val policyEngine = PolicyEngine()
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
@@ -92,14 +96,60 @@ class FilterVpnService : VpnService(), FilterEventSink {
         )
         proxy.start()
         dnsProxy = proxy
+
+        // App Control — השכבה הנראית: מסך חסימה כשאפליקציה אסורה עולה לחזית.
+        startAppControl()
+
         running = true
         updateNotification("🛡️ מוגן · policy ${policyEngine.policyId}")
+    }
+
+    private val attributor by lazy { ConnectionAttributor(this) }
+
+    private fun startAppControl() {
+        val overlay = BlockOverlay(this)
+        val monitor = AppMonitor(
+            context = this,
+            policy = policyEngine,
+            onBlockedApp = { pkg ->
+                overlay.show(BlockOverlay.Kind.APP, "האפליקציה חסומה", attributor.labelFor(pkg)) {
+                    sendOpeningRequest("app", pkg)
+                }
+                scope.launch {
+                    (application as SinunApp).policyRepository.reportEvent(
+                        "app_blocked", JSONObject().put("package", pkg),
+                    )
+                }
+            },
+            // מחליפים לאפליקציה מותרת → סוגרים רק overlay של אפליקציה (לא של אתר).
+            onAllowedApp = { overlay.hideIfKind(BlockOverlay.Kind.APP) },
+        )
+        monitor.start()
+        appMonitor = monitor
+        blockOverlay = overlay
+    }
+
+    private fun sendOpeningRequest(type: String, target: String) {
+        scope.launch {
+            (application as SinunApp).policyRepository
+                .runCatching { requestOpening(type, target, "בקשה מהמכשיר") }
+        }
     }
 
     /** קריאה חוזרת מהמנוע על כל הכרעה. חוסם → דיווח לשרת (מטא-דאטה בלבד). */
     override fun onEvent(event: FilterEvent) {
         if (event.verdict != PolicyEngine.Verdict.BLOCK) return
-        if (!shouldReport(event.domain)) return
+        if (!shouldReport(event.domain)) return  // דדופ: פעם בדקה לכל דומיין
+
+        // מסך חסימה לאתר — רק אם האפליקציה שביקשה היא זו שבחזית (גלישה יזומה),
+        // אחרת היינו מקפיצים מסך על כל בקשת רקע (טלמטריה, פרסומות...).
+        val pkg = event.packageName
+        if (pkg != null && pkg == appMonitor?.foregroundPackage) {
+            blockOverlay?.show(BlockOverlay.Kind.DOMAIN, "האתר חסום", event.domain) {
+                sendOpeningRequest("domain", event.domain)
+            }
+        }
+
         scope.launch {
             val repo = (application as SinunApp).policyRepository
             val details = JSONObject()
@@ -120,6 +170,10 @@ class FilterVpnService : VpnService(), FilterEventSink {
     }
 
     private fun stopVpn() {
+        appMonitor?.stop()
+        appMonitor = null
+        blockOverlay?.hide()
+        blockOverlay = null
         dnsProxy?.stop()
         dnsProxy = null
         tun?.close()

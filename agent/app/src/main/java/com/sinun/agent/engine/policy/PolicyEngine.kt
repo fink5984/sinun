@@ -109,7 +109,14 @@ class PolicyEngine {
         }
     }
 
-    /** הכרעה לפתיחת אפליקציה (App Monitor, שכבה נפרדת מהתעבורה). */
+    /**
+     * האם האפליקציה חסומה *במפורש* (ברשימת blocked_apps).
+     * שונה מ-evaluateApp: לא מחיל default-deny — כדי שה-App Monitor לא יחסום את
+     * כל המכשיר (מסך הבית, הגדרות...) אלא רק אפליקציות שסומנו לחסימה.
+     */
+    fun isAppBlocked(packageName: String): Boolean = packageName in state.get().blockedPackages
+
+    /** הכרעה לפתיחת אפליקציה (Launcher סגור — שכבה עתידית, מחיל default-deny). */
     fun evaluateApp(packageName: String): Decision {
         val s = state.get()
         if (packageName in s.blockedPackages) return Decision(Verdict.BLOCK, Reason.APP_BLOCKED, packageName)
