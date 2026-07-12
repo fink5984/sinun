@@ -71,3 +71,19 @@ def create_client_code(client_id: str, db: Session = Depends(get_db)):
     db.add(code)
     db.commit()
     return ClientCodeOut(code=code.code)
+
+
+@router.delete("/{client_id}", status_code=204)
+def delete_client(client_id: str, db: Session = Depends(get_db)):
+    """מחיקת לקוח. המכשירים המשויכים מנותקים מהלקוח (user_id=None) אך נשמרים."""
+    client = db.get(models.User, client_id)
+    if client is None:
+        raise HTTPException(status_code=404, detail="client not found")
+    for device in list(client.devices):
+        device.user_id = None
+    db.query(models.EnrollmentCode).filter(
+        models.EnrollmentCode.user_id == client_id,
+        models.EnrollmentCode.used_by_device_id.is_(None),
+    ).delete()
+    db.delete(client)
+    db.commit()

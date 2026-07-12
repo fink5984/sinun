@@ -119,6 +119,22 @@ class App(Base):
     status: Mapped[str] = mapped_column(String(20), default="unknown")  # approved / blocked / unknown
 
 
+class DeviceApp(Base):
+    """מלאי האפליקציות המותקנות פר-מכשיר. ה-agent מדווח את הרשימה המלאה
+    כל כמה דקות; הפאנל מציג אותה עם מתג פתוח/חסום לכל אפליקציה."""
+
+    __tablename__ = "device_apps"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    device_id: Mapped[str] = mapped_column(ForeignKey("devices.id"), index=True)
+    package_name: Mapped[str] = mapped_column(String(255), index=True)
+    app_name: Mapped[str | None] = mapped_column(String(255))
+    is_system: Mapped[bool] = mapped_column(default=False)
+    installer: Mapped[str | None] = mapped_column(String(255))
+    first_seen: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)
+    last_seen: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)
+
+
 class OpeningRequest(Base):
     __tablename__ = "requests"
 

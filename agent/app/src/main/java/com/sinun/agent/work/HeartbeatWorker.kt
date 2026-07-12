@@ -21,6 +21,7 @@ class HeartbeatWorker(
         val status = if (FilterVpnService.running) "protected" else "unprotected"
         repo.heartbeat(status)
         repo.refreshPolicy()
+        repo.reportInstalledApps()  // מלאי אפליקציות מעודכן לפאנל
         return Result.success()
     }
 

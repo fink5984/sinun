@@ -91,8 +91,9 @@ class AppMonitor(
             !pkg.contains("inputmethod")
 
     companion object {
-        private const val POLL_INTERVAL_MS = 700L
-        private const val LOOKBACK_MS = 10_000L
+        // poll קצר → זיהוי מהיר של מעבר לחזית; lookback קצר → פחות עיבוד לכל סבב.
+        private const val POLL_INTERVAL_MS = 250L
+        private const val LOOKBACK_MS = 5_000L
 
         /** אפליקציות מערכת חיוניות שלעולם לא נחסום (הגנה מפני נעילת מכשיר). */
         private val SAFE_PACKAGES = setOf(

@@ -100,6 +100,11 @@ class FilterVpnService : VpnService(), FilterEventSink {
         // App Control — השכבה הנראית: מסך חסימה כשאפליקציה אסורה עולה לחזית.
         startAppControl()
 
+        // מדווחים את מלאי האפליקציות המותקנות לשרת (רקע) כדי שהפאנל יהיה עדכני.
+        scope.launch {
+            (application as SinunApp).policyRepository.reportInstalledApps()
+        }
+
         running = true
         updateNotification("🛡️ מוגן · policy ${policyEngine.policyId}")
     }
@@ -108,6 +113,7 @@ class FilterVpnService : VpnService(), FilterEventSink {
 
     private fun startAppControl() {
         val overlay = BlockOverlay(this)
+        overlay.prewarm()  // טוען את דף החסימה מראש → הצגה מיידית בזמן חסימה
         val monitor = AppMonitor(
             context = this,
             policy = policyEngine,
@@ -183,7 +189,7 @@ class FilterVpnService : VpnService(), FilterEventSink {
     private fun stopVpn() {
         appMonitor?.stop()
         appMonitor = null
-        blockOverlay?.hide()
+        blockOverlay?.destroy()
         blockOverlay = null
         dnsProxy?.stop()
         dnsProxy = null

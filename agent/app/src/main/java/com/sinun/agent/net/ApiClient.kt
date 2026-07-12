@@ -8,6 +8,7 @@ import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
+import org.json.JSONArray
 import org.json.JSONObject
 import java.util.concurrent.TimeUnit
 
@@ -49,6 +50,11 @@ class ApiClient(private val baseUrl: String = BuildConfig.API_BASE_URL) {
     /** מושך את ה-policy העדכני; מחזיר את ה-JSON הגולמי לשמירה ב-cache. */
     suspend fun fetchPolicy(deviceId: String): JSONObject = withContext(Dispatchers.IO) {
         get("/api/devices/$deviceId/policy")
+    }
+
+    /** מדווח את רשימת האפליקציות המותקנות לשרת (למלאי הפאנל). */
+    suspend fun reportApps(deviceId: String, apps: JSONArray) = withContext(Dispatchers.IO) {
+        post("/api/devices/$deviceId/apps", JSONObject().put("apps", apps))
     }
 
     suspend fun reportEvent(deviceId: String, eventType: String, details: JSONObject? = null) =

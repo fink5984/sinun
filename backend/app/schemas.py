@@ -120,3 +120,25 @@ class RequestOut(BaseModel):
 
 class UninstallVerify(BaseModel):
     code: str
+
+
+# --- Installed apps inventory (agent → server) ---
+
+class InstalledApp(BaseModel):
+    package_name: str
+    app_name: str | None = None
+    is_system: bool = False
+    installer: str | None = None
+
+
+class AppInventory(BaseModel):
+    apps: list[InstalledApp]
+
+
+class DeviceAppOut(BaseModel):
+    package_name: str
+    app_name: str | None
+    is_system: bool
+    status: str  # allowed / blocked
+    source: str  # device / policy / default
+    last_seen: datetime | None

@@ -185,7 +185,7 @@
   <script>
     var _type = "domain", _target = "";
 
-    /* נקרא מהאפליקציה אחרי טעינת הדף */
+    /* נקרא מהאפליקציה אחרי טעינת הדף — וגם בכל חסימה חוזרת (ה-WebView ממוחזר) */
     function init(type, target, title) {
       _type = type || "domain";
       _target = target || "";
@@ -193,6 +193,14 @@
       document.getElementById("domainEl").textContent = target || "—";
       document.getElementById("badgeEl").textContent =
         type === "app" ? "📱 אפליקציה חסומה" : "🌐 אתר חסום";
+      /* איפוס מצב הטופס — כי אותו WebView משמש לחסימות עוקבות */
+      document.getElementById("formSection").classList.remove("visible");
+      document.getElementById("btnRequest").style.display = "";
+      document.getElementById("successEl").classList.remove("visible");
+      var sendBtn = document.querySelector(".btn-send");
+      if (sendBtn) sendBtn.disabled = false;
+      var reason = document.getElementById("reasonEl");
+      if (reason) reason.value = "";
     }
 
     function showForm() {

@@ -13,6 +13,11 @@
         xmlns:tools="http://schemas.android.com/tools" />
     <!-- שבוע 3: מסך חסימה מעל אפליקציות -->
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+    <!-- מלאי אפליקציות: ראיית כל החבילות המותקנות (Android 11+) לצורך חסימה פר-אפליקציה -->
+    <uses-permission
+        android:name="android.permission.QUERY_ALL_PACKAGES"
+        tools:ignore="QueryAllPackagesPermission"
+        xmlns:tools="http://schemas.android.com/tools" />
 
     <application
         android:name=".SinunApp"

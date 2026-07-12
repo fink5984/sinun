@@ -38,4 +38,18 @@
     <string name="removal_code_confirm">אמת וסלק הגנה</string>
     <string name="removal_code_invalid">קוד שגוי, פג תוקף, או לא הונפק. נסה שוב.</string>
     <string name="removal_deactivating">מבטל הגנה…</string>
+    <!-- אשף התקנה מודרך -->
+    <string name="setup_continue">המשך</string>
+    <string name="setup_open_settings">פתח הגדרות</string>
+    <string name="setup_step_of">שלב %1$d מתוך %2$d</string>
+    <string name="setup_return_hint">אחרי ההגדרה חזור לכאן ולחץ \"המשך\" לשלב הבא</string>
+    <string name="setup_usage_title">הרשאת נתוני שימוש</string>
+    <string name="setup_usage_desc">כדי לזהות איזו אפליקציה נפתחת ולחסום אפליקציות אסורות, יש לאשר ל-Sinun גישה לנתוני שימוש. במסך שייפתח, בחר את \"Sinun\" והפעל את המתג.</string>
+    <string name="setup_overlay_title">הצגה מעל אפליקציות</string>
+    <string name="setup_overlay_desc">כדי להציג את מסך החסימה מעל אפליקציה אסורה, יש לאשר ל-Sinun להופיע מעל אפליקציות אחרות. במסך שייפתח, הפעל את המתג עבור \"Sinun\".</string>
+    <string name="setup_admin_title">הגנה מפני הסרה</string>
+    <string name="setup_admin_desc">כדי למנוע הסרה של הסינון ללא אישור מנהל, יש להפעיל את מנהל ההתקן. במסך שייפתח, לחץ \"הפעל\".</string>
+    <string name="setup_vpn_title">הפעלת ההגנה</string>
+    <string name="setup_vpn_desc">השלב האחרון: הפעלת חיבור ה-VPN המקומי שמסנן את הגלישה. אשר את בקשת ה-VPN שתופיע.</string>
+    <string name="setup_done_toast">🛡️ ההגדרה הושלמה — המכשיר מוגן</string>
 </resources>

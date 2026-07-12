@@ -32,21 +32,41 @@ def compile_policy(policy: Policy) -> PolicyPayload:
     return _compile(policy, list(policy.rules))
 
 
+def effective_app_actions(rules: list[PolicyRule]) -> dict[str, str]:
+    """מכריע פעולה יחידה לכל package לפי priority (נמוך גובר). כלל override פר-מכשיר
+    (priority נמוך) גובר על כלל גלובלי — כך מתג פתוח/חסום בפאנל עובד נכון."""
+    decision: dict[str, str] = {}
+    for rule in sorted((r for r in rules if _active(r)), key=lambda r: r.priority):
+        if rule.rule_type == RuleType.package and rule.value not in decision:
+            decision[rule.value] = rule.action.value
+    return decision
+
+
 def _compile(policy: Policy, rules: list[PolicyRule]) -> PolicyPayload:
     allowed_domains: list[str] = []
     blocked_domains: list[str] = []
     allowed_apps: list[AllowedApp] = []
     blocked_apps: list[BlockedApp] = []
 
-    for rule in sorted((r for r in rules if _active(r)), key=lambda r: r.priority):
+    active_rules = [r for r in rules if _active(r)]
+
+    # דומיינים: כל הכללים הפעילים (המנוע בצד ה-agent מכריע לפי specificity).
+    for rule in sorted(active_rules, key=lambda r: r.priority):
         if rule.rule_type == RuleType.domain:
             (allowed_domains if rule.action == RuleAction.allow else blocked_domains).append(rule.value)
-        elif rule.rule_type == RuleType.package:
-            if rule.action == RuleAction.allow:
-                sig = (rule.extra or {}).get("signature_sha256")
-                allowed_apps.append(AllowedApp(package_name=rule.value, signature_sha256=sig))
-            else:
-                blocked_apps.append(BlockedApp(package_name=rule.value))
+
+    # אפליקציות: פעולה יחידה לכל package (override פר-מכשיר גובר על גלובלי).
+    app_actions = effective_app_actions(active_rules)
+    app_sig = {
+        r.value: (r.extra or {}).get("signature_sha256")
+        for r in active_rules
+        if r.rule_type == RuleType.package and r.action == RuleAction.allow
+    }
+    for pkg, action in app_actions.items():
+        if action == RuleAction.allow.value:
+            allowed_apps.append(AllowedApp(package_name=pkg, signature_sha256=app_sig.get(pkg)))
+        else:
+            blocked_apps.append(BlockedApp(package_name=pkg))
 
     payload = PolicyPayload(
         policy_id=policy.id,

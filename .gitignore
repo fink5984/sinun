@@ -30,3 +30,6 @@ captures/
 .DS_Store
 Thumbs.db
 .vscode/
+
+# Decompiled reference app (nativ) — large binary reference material, not source
+nativ/

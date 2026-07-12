@@ -5,6 +5,7 @@ import androidx.core.content.edit
 import com.sinun.agent.net.ApiClient
 import com.sinun.agent.data.local.CachedPolicy
 import com.sinun.agent.data.local.PolicyDb
+import com.sinun.agent.monitor.AppInventory
 import org.json.JSONObject
 
 /**
@@ -15,6 +16,7 @@ import org.json.JSONObject
  */
 class PolicyRepository(context: Context) {
 
+    private val appContext = context.applicationContext
     private val prefs = context.getSharedPreferences("sinun", Context.MODE_PRIVATE)
     private val db = PolicyDb.get(context)
     private val api = ApiClient()
@@ -65,6 +67,12 @@ class PolicyRepository(context: Context) {
     suspend fun reportEvent(eventType: String, details: JSONObject? = null) {
         val id = deviceId ?: return
         runCatching { api.reportEvent(id, eventType, details) }
+    }
+
+    /** אוסף את רשימת האפליקציות המותקנות ושולח לשרת (למלאי הפאנל). */
+    suspend fun reportInstalledApps() {
+        val id = deviceId ?: return
+        runCatching { api.reportApps(id, AppInventory(appContext).collect()) }
     }
 
     suspend fun requestOpening(type: String, target: String, reason: String) {

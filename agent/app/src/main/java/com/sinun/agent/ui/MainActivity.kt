@@ -7,6 +7,7 @@ import android.net.VpnService
 import android.os.Bundle
 import android.provider.Settings
 import android.text.InputType
+import android.view.View
 import android.widget.Button
 import android.widget.EditText
 import android.widget.TextView
@@ -65,6 +66,7 @@ class MainActivity : AppCompatActivity() {
         }
         findViewById<Button>(R.id.btn_request_removal).setOnClickListener { promptRemovalRequest() }
         findViewById<Button>(R.id.btn_enter_removal_code).setOnClickListener { promptRemovalCode() }
+        findViewById<Button>(R.id.btn_setup_continue).setOnClickListener { onSetupContinue() }
 
         HeartbeatWorker.schedule(this)
         if (repo.isEnrolled) loadPolicy() else promptForEnrollmentCode()
@@ -74,6 +76,94 @@ class MainActivity : AppCompatActivity() {
         super.onResume()
         renderStatus()
         renderPermissions()
+        renderWizard()
+    }
+
+    // ==================== אשף התקנה מודרך ====================
+
+    /** שלב באשף: כותרת, הסבר, בדיקה אם הושלם, ופעולה שפותחת את ההגדרה המתאימה. */
+    private data class SetupStep(
+        val id: String,
+        val titleRes: Int,
+        val descRes: Int,
+        val isDone: () -> Boolean,
+        val action: () -> Unit,
+    )
+
+    private val setupSteps: List<SetupStep> by lazy {
+        listOf(
+            SetupStep(
+                "usage", R.string.setup_usage_title, R.string.setup_usage_desc,
+                { AppMonitor.hasUsageAccess(this) },
+                { startActivity(Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS)) },
+            ),
+            SetupStep(
+                "overlay", R.string.setup_overlay_title, R.string.setup_overlay_desc,
+                { Settings.canDrawOverlays(this) },
+                {
+                    startActivity(Intent(
+                        Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                        Uri.parse("package:$packageName"),
+                    ))
+                },
+            ),
+            SetupStep(
+                "admin", R.string.setup_admin_title, R.string.setup_admin_desc,
+                { SinunDeviceAdminReceiver.isActive(this) },
+                { startActivity(SinunDeviceAdminReceiver.activationIntent(this)) },
+            ),
+            SetupStep(
+                "vpn", R.string.setup_vpn_title, R.string.setup_vpn_desc,
+                { FilterVpnService.running },
+                { requestVpn() },
+            ),
+        )
+    }
+
+    private var setupWasComplete = false
+
+    /** מציג את השלב הנוכחי (הראשון שלא הושלם); כשהכל הושלם — עובר למסך הרגיל. */
+    private fun renderWizard() {
+        val setupCard = findViewById<View>(R.id.setup_card)
+        val otherCards = listOf(R.id.status_card, R.id.perms_card, R.id.request_card, R.id.removal_card)
+
+        if (!repo.isEnrolled) {
+            setupCard.visibility = View.GONE
+            otherCards.forEach { findViewById<View>(it).visibility = View.GONE }
+            return
+        }
+
+        val idx = setupSteps.indexOfFirst { !it.isDone() }
+        if (idx == -1) {
+            setupCard.visibility = View.GONE
+            otherCards.forEach { findViewById<View>(it).visibility = View.VISIBLE }
+            if (!setupWasComplete) {
+                setupWasComplete = true
+                Toast.makeText(this, R.string.setup_done_toast, Toast.LENGTH_LONG).show()
+                lifecycleScope.launch { runCatching { repo.reportInstalledApps() } }
+            }
+            return
+        }
+
+        setupWasComplete = false
+        otherCards.forEach { findViewById<View>(it).visibility = View.GONE }
+        setupCard.visibility = View.VISIBLE
+
+        val step = setupSteps[idx]
+        findViewById<TextView>(R.id.setup_badge).text =
+            getString(R.string.setup_step_of, idx + 1, setupSteps.size)
+        findViewById<TextView>(R.id.setup_title).text = getString(step.titleRes)
+        findViewById<TextView>(R.id.setup_desc).text = getString(step.descRes)
+        findViewById<TextView>(R.id.setup_progress_hint).text = getString(R.string.setup_return_hint)
+        findViewById<Button>(R.id.btn_setup_continue).setText(
+            if (step.id == "vpn") R.string.setup_continue else R.string.setup_open_settings,
+        )
+    }
+
+    /** לחיצה על "המשך" — מפעילה את פעולת השלב הנוכחי (פותחת הגדרות / מבקשת VPN). */
+    private fun onSetupContinue() {
+        val idx = setupSteps.indexOfFirst { !it.isDone() }
+        if (idx >= 0) setupSteps[idx].action()
     }
 
     /** מציג אילו הרשאות ל-App Control כבר הוענקו. שתיהן נדרשות למסך החסימה. */
@@ -119,6 +209,8 @@ class MainActivity : AppCompatActivity() {
             try {
                 repo.enroll(code, BuildConfig.VERSION_NAME)
                 loadPolicy()
+                renderWizard()  // מתחיל את האשף המודרך מיד אחרי החיבור
+                runCatching { repo.reportInstalledApps() }  // מלאי ראשוני לפאנל
             } catch (e: Exception) {
                 Toast.makeText(this@MainActivity, getString(R.string.enroll_failed, e.message), Toast.LENGTH_LONG).show()
                 promptForEnrollmentCode()
@@ -171,7 +263,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun startVpnService() {
         startForegroundService(Intent(this, FilterVpnService::class.java))
-        statusText.postDelayed({ renderStatus() }, 500)
+        statusText.postDelayed({ renderStatus(); renderWizard() }, 800)
     }
 
     /** שלד לזרימת "בקש פתיחה" — בשבוע 4 יוחלף בדיאלוג אמיתי מתוך מסך החסימה. */

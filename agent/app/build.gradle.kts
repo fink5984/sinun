@@ -12,8 +12,8 @@ android {
         applicationId = "com.sinun.agent"
         minSdk = 26
         targetSdk = 35
-        versionCode = 1
-        versionName = "0.1.0"
+        versionCode = 2
+        versionName = "0.2.0"
 
         // כתובת השרת. debug → פרודקשן ב-Railway; אפשר לעקוף מקומית עם 10.0.2.2:8000.
         buildConfigField("String", "API_BASE_URL", "\"https://sinun-production.up.railway.app\"")
