@@ -1,0 +1,32 @@
+{
+  "policy_id": "basic_kosher_001",
+  "name": "מדיניות בסיס",
+  "description": "Default deny — רק מה שברשימה פתוח. policy ידני ראשוני לשבוע 1.",
+  "default_network_action": "block",
+  "default_app_action": "block",
+  "allowed_domains": [
+    "google.com",
+    "gmail.com",
+    "waze.com"
+  ],
+  "blocked_domains": [
+    "example-bad-site.com"
+  ],
+  "allowed_apps": [
+    {
+      "package_name": "com.whatsapp",
+      "signature_sha256": "OFFICIAL_SIGNATURE_HERE",
+      "action": "allow"
+    }
+  ],
+  "blocked_apps": [
+    {
+      "package_name": "com.android.chrome",
+      "action": "block"
+    }
+  ],
+  "support": {
+    "allow_opening_requests": true,
+    "temporary_opening_minutes": 30
+  }
+}

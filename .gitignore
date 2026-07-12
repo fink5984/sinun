@@ -1,0 +1,32 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+*.egg-info/
+.pytest_cache/
+
+# DB / env
+*.db
+*.sqlite3
+.env
+
+# Node
+node_modules/
+.next/
+dist/
+
+# Android
+agent/.gradle/
+agent/build/
+agent/app/build/
+agent/local.properties
+agent/.idea/
+*.apk
+*.aab
+captures/
+
+# OS / IDE
+.DS_Store
+Thumbs.db
+.vscode/

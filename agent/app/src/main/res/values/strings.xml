@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Sinun Agent</string>
+    <string name="status_protected">🛡️ מוגן</string>
+    <string name="status_unprotected">⚠️ לא מוגן</string>
+    <string name="status_error">שגיאה: %1$s</string>
+    <string name="policy_summary">Policy: %1$s (%2$s)\nדומיינים מאושרים: %3$d · חסומים: %4$d</string>
+    <string name="policy_from_server">מהשרת</string>
+    <string name="policy_from_cache">מ-cache מקומי</string>
+    <string name="policy_none">אין policy — מצב חסימה מלא (fail closed)</string>
+    <string name="btn_start_protection">הפעל הגנה</string>
+    <string name="btn_request_opening">בקש פתיחה (דמו)</string>
+    <string name="request_sent">הבקשה נשלחה למנהל</string>
+    <string name="request_failed">שליחת הבקשה נכשלה: %1$s</string>
+</resources>
