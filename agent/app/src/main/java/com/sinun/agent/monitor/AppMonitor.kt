@@ -47,6 +47,12 @@ class AppMonitor(
         thread = null
     }
 
+    /** מאלץ הערכה מחדש של האפליקציה שבחזית בסבב הבא (למשל אחרי עדכון policy —
+     *  כדי שאפליקציה שאושרה תפסיק להיחסם מיד, בלי להמתין למעבר אפליקציה). */
+    fun invalidate() {
+        lastHandled = null
+    }
+
     private fun loop() {
         while (running.get()) {
             val fg = currentForegroundApp()

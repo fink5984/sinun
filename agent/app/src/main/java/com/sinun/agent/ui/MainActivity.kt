@@ -1,5 +1,6 @@
 package com.sinun.agent.ui
 
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Intent
 import android.net.Uri
@@ -7,17 +8,17 @@ import android.net.VpnService
 import android.os.Bundle
 import android.provider.Settings
 import android.text.InputType
-import android.view.View
-import android.widget.Button
+import android.webkit.JavascriptInterface
+import android.webkit.WebView
+import android.webkit.WebViewClient
 import android.widget.EditText
-import android.widget.TextView
+import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.sinun.agent.BuildConfig
-import com.sinun.agent.R
 import com.sinun.agent.SinunApp
 import com.sinun.agent.admin.SinunDeviceAdminReceiver
 import com.sinun.agent.data.PolicyState
@@ -25,16 +26,19 @@ import com.sinun.agent.monitor.AppMonitor
 import com.sinun.agent.vpn.FilterVpnService
 import com.sinun.agent.work.HeartbeatWorker
 import kotlinx.coroutines.launch
+import org.json.JSONArray
+import org.json.JSONObject
 
 /**
- * מסך הסטטוס (שבוע 1): מוגן / לא מוגן / שגיאה, מצב ה-policy, וכפתור "בקש פתיחה".
+ * מסך האפליקציה — WebView יחיד שטוען app.html ומנהל שלושה מצבים: הרשמה, אשף
+ * הגדרה מודרך (שלב אחר שלב), ומסך בית. הלוגיקה הנייטיבית (הרשאות, VPN, בקשות)
+ * נחשפת ל-HTML דרך גשר "Native", והמצב נדחף חזרה ל-WebView בכל onResume.
  */
 class MainActivity : AppCompatActivity() {
 
     private val repo by lazy { (application as SinunApp).policyRepository }
-
-    private lateinit var statusText: TextView
-    private lateinit var policyText: TextView
+    private lateinit var web: WebView
+    private var pageReady = false
 
     private val vpnConsent = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult(),
@@ -43,218 +47,132 @@ class MainActivity : AppCompatActivity() {
         else Toast.makeText(this, "בלי אישור VPN אין הגנה", Toast.LENGTH_LONG).show()
     }
 
+    @SuppressLint("SetJavaScriptEnabled")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
+        window.statusBarColor = 0xFF173A67.toInt()
 
-        statusText = findViewById(R.id.status_text)
-        policyText = findViewById(R.id.policy_text)
-
-        findViewById<Button>(R.id.btn_start_vpn).setOnClickListener { requestVpn() }
-        findViewById<Button>(R.id.btn_request_opening).setOnClickListener { sendDemoOpeningRequest() }
-        findViewById<Button>(R.id.btn_usage_access).setOnClickListener {
-            startActivity(Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS))
+        web = WebView(this).apply {
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.MATCH_PARENT,
+            )
+            settings.javaScriptEnabled = true
+            settings.domStorageEnabled = true
+            setBackgroundColor(0xFFEEF3FB.toInt())
+            addJavascriptInterface(Native(), "Native")
+            webViewClient = object : WebViewClient() {
+                override fun onPageFinished(v: WebView, url: String) {
+                    pageReady = true
+                    pushState()
+                }
+            }
+            loadUrl("file:///android_asset/app.html")
         }
-        findViewById<Button>(R.id.btn_overlay).setOnClickListener {
-            startActivity(Intent(
-                Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
-                Uri.parse("package:$packageName"),
-            ))
-        }
-        findViewById<Button>(R.id.btn_device_admin).setOnClickListener {
-            startActivity(SinunDeviceAdminReceiver.activationIntent(this))
-        }
-        findViewById<Button>(R.id.btn_request_removal).setOnClickListener { promptRemovalRequest() }
-        findViewById<Button>(R.id.btn_enter_removal_code).setOnClickListener { promptRemovalCode() }
-        findViewById<Button>(R.id.btn_setup_continue).setOnClickListener { onSetupContinue() }
+        setContentView(web)
 
         HeartbeatWorker.schedule(this)
-        if (repo.isEnrolled) loadPolicy() else promptForEnrollmentCode()
     }
 
     override fun onResume() {
         super.onResume()
-        renderStatus()
-        renderPermissions()
-        renderWizard()
+        pushState()
     }
 
-    // ==================== אשף התקנה מודרך ====================
+    // ==================== גשר ל-HTML ====================
 
-    /** שלב באשף: כותרת, הסבר, בדיקה אם הושלם, ופעולה שפותחת את ההגדרה המתאימה. */
-    private data class SetupStep(
-        val id: String,
-        val titleRes: Int,
-        val descRes: Int,
-        val isDone: () -> Boolean,
-        val action: () -> Unit,
-    )
+    private inner class Native {
+        @JavascriptInterface
+        fun enroll(code: String) {
+            lifecycleScope.launch {
+                try {
+                    repo.enroll(code, BuildConfig.VERSION_NAME)
+                    runCatching { repo.reportInstalledApps() }
+                    pushState()
+                } catch (e: Exception) {
+                    val msg = JSONObject.quote(getString(errMsg(e)))
+                    runOnUiThread { web.evaluateJavascript("enrollError($msg)", null) }
+                }
+            }
+        }
 
-    private val setupSteps: List<SetupStep> by lazy {
-        listOf(
-            SetupStep(
-                "usage", R.string.setup_usage_title, R.string.setup_usage_desc,
-                { AppMonitor.hasUsageAccess(this) },
-                { startActivity(Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS)) },
-            ),
-            SetupStep(
-                "overlay", R.string.setup_overlay_title, R.string.setup_overlay_desc,
-                { Settings.canDrawOverlays(this) },
-                {
-                    startActivity(Intent(
+        @JavascriptInterface
+        fun action(id: String) {
+            runOnUiThread {
+                when (id) {
+                    "usage" -> startActivity(Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS))
+                    "overlay" -> startActivity(Intent(
                         Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
                         Uri.parse("package:$packageName"),
                     ))
-                },
-            ),
-            SetupStep(
-                "admin", R.string.setup_admin_title, R.string.setup_admin_desc,
-                { SinunDeviceAdminReceiver.isActive(this) },
-                { startActivity(SinunDeviceAdminReceiver.activationIntent(this)) },
-            ),
-            SetupStep(
-                "vpn", R.string.setup_vpn_title, R.string.setup_vpn_desc,
-                { FilterVpnService.running },
-                { requestVpn() },
-            ),
-        )
-    }
-
-    private var setupWasComplete = false
-
-    /** מציג את השלב הנוכחי (הראשון שלא הושלם); כשהכל הושלם — עובר למסך הרגיל. */
-    private fun renderWizard() {
-        val setupCard = findViewById<View>(R.id.setup_card)
-        val otherCards = listOf(R.id.status_card, R.id.perms_card, R.id.request_card, R.id.removal_card)
-
-        if (!repo.isEnrolled) {
-            setupCard.visibility = View.GONE
-            otherCards.forEach { findViewById<View>(it).visibility = View.GONE }
-            return
-        }
-
-        val idx = setupSteps.indexOfFirst { !it.isDone() }
-        if (idx == -1) {
-            setupCard.visibility = View.GONE
-            otherCards.forEach { findViewById<View>(it).visibility = View.VISIBLE }
-            if (!setupWasComplete) {
-                setupWasComplete = true
-                Toast.makeText(this, R.string.setup_done_toast, Toast.LENGTH_LONG).show()
-                lifecycleScope.launch { runCatching { repo.reportInstalledApps() } }
+                    "admin" -> startActivity(SinunDeviceAdminReceiver.activationIntent(this@MainActivity))
+                    "vpn" -> requestVpn()
+                    "request_opening" -> promptOpeningRequest()
+                    "refresh" -> pushState()
+                }
             }
-            return
         }
-
-        setupWasComplete = false
-        otherCards.forEach { findViewById<View>(it).visibility = View.GONE }
-        setupCard.visibility = View.VISIBLE
-
-        val step = setupSteps[idx]
-        findViewById<TextView>(R.id.setup_badge).text =
-            getString(R.string.setup_step_of, idx + 1, setupSteps.size)
-        findViewById<TextView>(R.id.setup_title).text = getString(step.titleRes)
-        findViewById<TextView>(R.id.setup_desc).text = getString(step.descRes)
-        findViewById<TextView>(R.id.setup_progress_hint).text = getString(R.string.setup_return_hint)
-        findViewById<Button>(R.id.btn_setup_continue).setText(
-            if (step.id == "vpn") R.string.setup_continue else R.string.setup_open_settings,
-        )
     }
 
-    /** לחיצה על "המשך" — מפעילה את פעולת השלב הנוכחי (פותחת הגדרות / מבקשת VPN). */
-    private fun onSetupContinue() {
-        val idx = setupSteps.indexOfFirst { !it.isDone() }
-        if (idx >= 0) setupSteps[idx].action()
+    private fun errMsg(e: Exception): Int =
+        com.sinun.agent.R.string.enroll_failed_short
+
+    // ==================== מצב → WebView ====================
+
+    private fun pushState() {
+        if (!pageReady) return
+        lifecycleScope.launch {
+            val state = buildState()
+            val quoted = JSONObject.quote(state.toString())
+            runOnUiThread {
+                if (pageReady) web.evaluateJavascript("setState($quoted)", null)
+            }
+        }
     }
 
-    /** מציג אילו הרשאות ל-App Control כבר הוענקו. שתיהן נדרשות למסך החסימה. */
-    private fun renderPermissions() {
+    private suspend fun buildState(): JSONObject {
+        val enrolled = repo.isEnrolled
         val usage = AppMonitor.hasUsageAccess(this)
         val overlay = Settings.canDrawOverlays(this)
-        findViewById<Button>(R.id.btn_usage_access).apply {
-            text = getString(if (usage) R.string.perm_usage else R.string.perm_usage_missing)
-            isEnabled = !usage
-        }
-        findViewById<Button>(R.id.btn_overlay).apply {
-            text = getString(if (overlay) R.string.perm_overlay else R.string.perm_overlay_missing)
-            isEnabled = !overlay
-        }
         val admin = SinunDeviceAdminReceiver.isActive(this)
-        findViewById<Button>(R.id.btn_device_admin).apply {
-            text = getString(if (admin) R.string.perm_admin else R.string.perm_admin_missing)
-            isEnabled = !admin
-        }
-    }
+        val vpn = FilterVpnService.running
 
-    /** מסך ההצטרפות: הלקוח מזין את הקוד החד-פעמי שקיבל מהמנהל. */
-    private fun promptForEnrollmentCode() {
-        val input = EditText(this).apply {
-            hint = getString(R.string.enroll_code_hint)
-            inputType = InputType.TYPE_TEXT_FLAG_CAP_CHARACTERS
-        }
-        AlertDialog.Builder(this)
-            .setTitle(R.string.enroll_title)
-            .setMessage(R.string.enroll_message)
-            .setView(input)
-            .setCancelable(false)
-            .setPositiveButton(R.string.enroll_confirm) { _, _ -> enroll(input.text.toString()) }
-            .show()
-    }
+        val steps = JSONArray()
+            .put(step("usage", usage))
+            .put(step("overlay", overlay))
+            .put(step("admin", admin))
+            .put(step("vpn", vpn))
+        val allDone = usage && overlay && admin && vpn
 
-    private fun enroll(code: String) {
-        if (code.isBlank()) {
-            promptForEnrollmentCode()
-            return
-        }
-        lifecycleScope.launch {
-            try {
-                repo.enroll(code, BuildConfig.VERSION_NAME)
-                loadPolicy()
-                renderWizard()  // מתחיל את האשף המודרך מיד אחרי החיבור
-                runCatching { repo.reportInstalledApps() }  // מלאי ראשוני לפאנל
-            } catch (e: Exception) {
-                Toast.makeText(this@MainActivity, getString(R.string.enroll_failed, e.message), Toast.LENGTH_LONG).show()
-                promptForEnrollmentCode()
+        val json = JSONObject()
+            .put("enrolled", enrolled)
+            .put("allDone", allDone)
+            .put("protected", vpn)
+            .put("version", "v" + BuildConfig.VERSION_NAME)
+            .put("steps", steps)
+
+        if (enrolled) {
+            json.put("perms", JSONArray()
+                .put(permRow("זיהוי אפליקציות", usage))
+                .put(permRow("מסך חסימה", overlay))
+                .put(permRow("הגנה מפני הסרה", admin))
+                .put(permRow("סינון פעיל", vpn)))
+            when (val s = repo.cachedPolicy()) {
+                is PolicyState.Active -> {
+                    json.put("policyName", s.policy.optString("policy_id", ""))
+                    json.put("allowedCount", s.policy.optJSONArray("allowed_domains")?.length() ?: 0)
+                    json.put("blockedCount", s.policy.optJSONArray("blocked_domains")?.length() ?: 0)
+                }
+                PolicyState.NoPolicy -> {}
             }
         }
+        return json
     }
 
-    private fun loadPolicy() {
-        lifecycleScope.launch {
-            try {
-                renderPolicy(repo.refreshPolicy())
-            } catch (e: Exception) {
-                statusText.text = getString(R.string.status_error, e.message)
-                renderPolicy(repo.cachedPolicy())
-            }
-            renderStatus()
-        }
-    }
+    private fun step(id: String, done: Boolean) = JSONObject().put("id", id).put("done", done)
+    private fun permRow(title: String, ok: Boolean) = JSONObject().put("title", title).put("ok", ok)
 
-    private fun renderStatus() {
-        if (!::statusText.isInitialized) return
-        val protected = FilterVpnService.running
-        statusText.text = if (protected) getString(R.string.status_protected)
-                          else getString(R.string.status_unprotected)
-        // צביעת הנקודה: ירוק = מוגן, אדום = לא מוגן
-        val dotColor = if (protected) 0xFF3FB950.toInt() else 0xFFF85149.toInt()
-        val dot = findViewById<android.view.View?>(R.id.status_dot)
-        dot?.setBackgroundColor(dotColor)
-    }
-
-    private fun renderPolicy(state: PolicyState) {
-        policyText.text = when (state) {
-            is PolicyState.Active -> {
-                val source = if (state.fromCache) getString(R.string.policy_from_cache) else getString(R.string.policy_from_server)
-                val allowed = state.policy.optJSONArray("allowed_domains")?.length() ?: 0
-                val blocked = state.policy.optJSONArray("blocked_domains")?.length() ?: 0
-                getString(
-                    R.string.policy_summary,
-                    state.policy.optString("policy_id"), source, allowed, blocked,
-                )
-            }
-            PolicyState.NoPolicy -> getString(R.string.policy_none)
-        }
-    }
+    // ==================== פעולות ====================
 
     private fun requestVpn() {
         val consentIntent = VpnService.prepare(this)
@@ -263,86 +181,44 @@ class MainActivity : AppCompatActivity() {
 
     private fun startVpnService() {
         startForegroundService(Intent(this, FilterVpnService::class.java))
-        statusText.postDelayed({ renderStatus(); renderWizard() }, 800)
+        web.postDelayed({ pushState() }, 900)
     }
 
-    /** שלד לזרימת "בקש פתיחה" — בשבוע 4 יוחלף בדיאלוג אמיתי מתוך מסך החסימה. */
-    private fun sendDemoOpeningRequest() {
-        lifecycleScope.launch {
-            try {
-                repo.requestOpening(type = "domain", target = "example.com", reason = "בדיקת זרימת בקשות")
-                Toast.makeText(this@MainActivity, R.string.request_sent, Toast.LENGTH_SHORT).show()
-            } catch (e: Exception) {
-                Toast.makeText(this@MainActivity, getString(R.string.request_failed, e.message), Toast.LENGTH_LONG).show()
-            }
+    /** דיאלוג בקשת פתיחה מהמסך הראשי — המשתמש מזין אתר/אפליקציה וסיבה. */
+    private fun promptOpeningRequest() {
+        val container = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(48, 24, 48, 0)
         }
-    }
-
-    /**
-     * שלב 1 מתוך 2: המשתמש שולח בקשת הסרה למנהל.
-     * המנהל רואה את הבקשה בפאנל ויכול ליצור קוד חד-פעמי.
-     */
-    private fun promptRemovalRequest() {
-        val input = EditText(this).apply {
-            hint = getString(R.string.removal_request_hint)
+        val targetInput = EditText(this).apply {
+            hint = "כתובת אתר או שם אפליקציה"
+            inputType = InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS
+        }
+        val reasonInput = EditText(this).apply {
+            hint = "סיבת הבקשה (אופציונלי)"
             inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_MULTI_LINE
         }
-        AlertDialog.Builder(this)
-            .setTitle(R.string.removal_request_title)
-            .setMessage(R.string.removal_request_message)
-            .setView(input)
-            .setPositiveButton(getString(R.string.enroll_confirm)) { _, _ ->
-                val reason = input.text.toString().trim()
-                lifecycleScope.launch {
-                    try {
-                        repo.requestRemoval(reason.ifBlank { "ללא סיבה" })
-                        Toast.makeText(this@MainActivity, R.string.removal_request_sent, Toast.LENGTH_LONG).show()
-                    } catch (e: Exception) {
-                        Toast.makeText(
-                            this@MainActivity,
-                            getString(R.string.removal_request_failed, e.message),
-                            Toast.LENGTH_LONG,
-                        ).show()
-                    }
-                }
-            }
-            .setNegativeButton(android.R.string.cancel, null)
-            .show()
-    }
+        container.addView(targetInput)
+        container.addView(reasonInput)
 
-    /**
-     * שלב 2 מתוך 2: המשתמש מזין את הקוד שקיבל מהמנהל.
-     * אם תקין — מבטל Device Admin ומפתח את אפשרות ההסרה.
-     */
-    private fun promptRemovalCode() {
-        val input = EditText(this).apply {
-            hint = getString(R.string.removal_code_hint)
-            inputType = InputType.TYPE_CLASS_NUMBER
-        }
         AlertDialog.Builder(this)
-            .setTitle(R.string.removal_code_title)
-            .setMessage(R.string.removal_code_message)
-            .setView(input)
-            .setPositiveButton(getString(R.string.removal_code_confirm)) { _, _ ->
-                val code = input.text.toString().trim()
-                if (code.length != 6) {
-                    Toast.makeText(this, R.string.removal_code_invalid, Toast.LENGTH_SHORT).show()
+            .setTitle("בקשת פתיחה")
+            .setMessage("הבקשה תישלח למנהל לאישור.")
+            .setView(container)
+            .setPositiveButton("שלח") { _, _ ->
+                val target = targetInput.text.toString().trim()
+                if (target.isEmpty()) {
+                    Toast.makeText(this, "נא להזין אתר או אפליקציה", Toast.LENGTH_SHORT).show()
                     return@setPositiveButton
                 }
+                val reason = reasonInput.text.toString().trim().ifBlank { "ללא סיבה" }
                 lifecycleScope.launch {
-                    val authorized = repo.verifyUninstallCode(code)
-                    if (!authorized) {
-                        Toast.makeText(this@MainActivity, R.string.removal_code_invalid, Toast.LENGTH_LONG).show()
-                        return@launch
+                    try {
+                        repo.requestOpening("domain", target, reason)
+                        Toast.makeText(this@MainActivity, "הבקשה נשלחה למנהל", Toast.LENGTH_SHORT).show()
+                    } catch (e: Exception) {
+                        Toast.makeText(this@MainActivity, "שליחת הבקשה נכשלה", Toast.LENGTH_LONG).show()
                     }
-                    Toast.makeText(this@MainActivity, R.string.removal_deactivating, Toast.LENGTH_SHORT).show()
-                    // שלב 1: ביטול Device Admin (כדי שהמערכת תאפשר הסרה)
-                    SinunDeviceAdminReceiver.deactivate(this@MainActivity)
-                    // שלב 2: פתיחת מסך הסרת האפליקציה של המערכת
-                    startActivity(
-                        Intent(Intent.ACTION_DELETE, Uri.parse("package:$packageName"))
-                            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
-                    )
                 }
             }
             .setNegativeButton(android.R.string.cancel, null)

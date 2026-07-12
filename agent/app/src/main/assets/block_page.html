@@ -5,222 +5,109 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>גישה חסומה</title>
   <style>
-    :root {
-      --bg: #0d1117;
-      --surface: #161b22;
-      --surface2: #1c2128;
-      --border: #30363d;
-      --text: #e6edf3;
-      --muted: #8b949e;
-      --red: #f85149;
-      --green: #3fb950;
-      --blue: #58a6ff;
-      --amber: #f0883e;
-      --radius: 14px;
+    :root{
+      --bg1:#eef3fb; --bg2:#dbe7f6;
+      --card:#ffffff; --ink:#16283d; --muted:#63748b; --faint:#94a2b6;
+      --line:#e6ecf5; --navy:#173a67; --brand:#2f6cdf; --brand-ink:#1e5ac0;
+      --amber:#b9832e; --amber-bg:#fbf3e2; --green:#1f9254; --green-bg:#e6f4ec;
     }
-    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-    html, body { height: 100%; }
-    body {
-      background: var(--bg);
-      color: var(--text);
-      font-family: -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      min-height: 100%;
-      padding: 20px;
-    }
-    .card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 32px 24px 24px;
-      max-width: 440px;
-      width: 100%;
-      box-shadow: 0 20px 60px rgba(0,0,0,0.5);
-      animation: slideUp 0.3s ease;
-    }
-    @keyframes slideUp {
-      from { opacity: 0; transform: translateY(20px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
-    .shield-wrap {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      width: 72px;
-      height: 72px;
-      background: rgba(248,81,73,0.12);
-      border-radius: 50%;
-      margin: 0 auto 20px;
-    }
-    .shield-icon { font-size: 36px; line-height: 1; }
-    .title {
-      font-size: 24px;
-      font-weight: 800;
-      color: var(--red);
-      text-align: center;
-      margin-bottom: 8px;
-    }
-    .domain {
-      text-align: center;
-      font-family: 'SFMono-Regular', Consolas, 'Courier New', monospace;
-      font-size: 15px;
-      color: var(--muted);
-      margin-bottom: 14px;
-      word-break: break-all;
-    }
-    .badge {
-      display: inline-block;
-      background: rgba(248,81,73,0.14);
-      border: 1px solid rgba(248,81,73,0.3);
-      color: var(--red);
-      padding: 3px 12px;
-      border-radius: 20px;
-      font-size: 12px;
-      font-weight: 700;
-      margin-bottom: 20px;
-    }
-    .badge-wrap { text-align: center; }
-    .desc {
-      font-size: 14px;
-      color: var(--muted);
-      text-align: center;
-      line-height: 1.65;
-      margin-bottom: 24px;
-    }
-    .divider { height: 1px; background: var(--border); margin: 0 0 20px; }
-    .btn {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      width: 100%;
-      padding: 14px 20px;
-      border-radius: 10px;
-      font-size: 15px;
-      font-weight: 700;
-      border: none;
-      cursor: pointer;
-      margin-bottom: 10px;
-      font-family: inherit;
-      transition: filter 0.15s, transform 0.1s;
-      -webkit-appearance: none;
-    }
-    .btn:active { filter: brightness(0.85); transform: scale(0.98); }
-    .btn-primary { background: var(--blue); color: #fff; }
-    .btn-ghost { background: transparent; border: 1px solid var(--border); color: var(--muted); }
-    .btn-send { background: var(--green); color: #fff; margin-top: 10px; }
-    .form-section { display: none; }
-    .form-section.visible { display: block; }
-    .form-label {
-      font-size: 13px;
-      color: var(--muted);
-      margin-bottom: 8px;
-      text-align: right;
-    }
-    textarea {
-      width: 100%;
-      background: var(--bg);
-      border: 1px solid var(--border);
-      color: var(--text);
-      padding: 12px;
-      border-radius: 8px;
-      font-size: 14px;
-      font-family: inherit;
-      resize: vertical;
-      min-height: 80px;
-      direction: rtl;
-      outline: none;
-    }
-    textarea:focus { border-color: var(--blue); }
-    .success {
-      display: none;
-      text-align: center;
-      color: var(--green);
-      font-size: 14px;
-      font-weight: 600;
-      padding: 12px;
-      background: rgba(63,185,80,0.1);
-      border-radius: 8px;
-      margin-top: 10px;
-    }
-    .success.visible { display: block; }
-    .footer {
-      text-align: center;
-      font-size: 11px;
-      color: #444d56;
-      margin-top: 16px;
-    }
+    *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+    html,body{height:100%;}
+    body{font-family:"Heebo","Assistant",-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+      color:var(--ink);background:linear-gradient(165deg,var(--bg1),var(--bg2));
+      display:flex;align-items:center;justify-content:center;min-height:100%;padding:22px;-webkit-font-smoothing:antialiased;}
+    .card{background:var(--card);border-radius:24px;padding:30px 24px 24px;max-width:420px;width:100%;
+      box-shadow:0 20px 50px rgba(23,58,103,.18);animation:rise .35s cubic-bezier(.2,.9,.3,1.2);}
+    @keyframes rise{from{opacity:0;transform:translateY(22px) scale(.97);}to{opacity:1;transform:none;}}
+    .emblem{width:78px;height:78px;border-radius:24px;margin:0 auto 20px;display:flex;align-items:center;justify-content:center;
+      background:linear-gradient(150deg,var(--navy),var(--brand));box-shadow:0 12px 26px rgba(47,108,223,.32);}
+    .emblem svg{width:40px;height:40px;fill:#fff;}
+    .title{font-size:23px;font-weight:800;text-align:center;letter-spacing:-.01em;}
+    .badge{display:flex;align-items:center;justify-content:center;gap:7px;width:fit-content;margin:12px auto 0;
+      background:var(--amber-bg);color:var(--amber);font-size:12.5px;font-weight:700;padding:6px 14px;border-radius:20px;}
+    .badge svg{width:15px;height:15px;fill:currentColor;}
+    .target{margin:16px 0 4px;background:#f4f7fc;border:1px solid var(--line);border-radius:12px;padding:13px 14px;
+      text-align:center;font-size:15px;font-weight:700;color:var(--navy);word-break:break-all;font-family:ui-monospace,Consolas,monospace;}
+    .desc{font-size:14px;color:var(--muted);text-align:center;line-height:1.6;margin:16px 4px 22px;}
+    .btn{display:flex;align-items:center;justify-content:center;gap:9px;width:100%;padding:15px;border:none;border-radius:14px;
+      font-size:15.5px;font-weight:800;font-family:inherit;cursor:pointer;transition:transform .1s,filter .15s;margin-bottom:11px;}
+    .btn:active{transform:scale(.98);}
+    .btn svg{width:19px;height:19px;}
+    .btn-primary{background:linear-gradient(150deg,var(--brand),var(--brand-ink));color:#fff;box-shadow:0 8px 20px rgba(47,108,223,.3);}
+    .btn-primary svg{fill:#fff;}
+    .btn-soft{background:#eef2f9;color:var(--navy);}
+    .btn-soft svg{fill:var(--navy);}
+    .form{display:none;margin-top:6px;}
+    .form.show{display:block;}
+    .label{font-size:13px;color:var(--muted);font-weight:600;margin:6px 0 8px;text-align:right;}
+    textarea{width:100%;background:#f9fbfe;border:1.5px solid var(--line);color:var(--ink);padding:13px;border-radius:12px;
+      font-size:14px;font-family:inherit;resize:vertical;min-height:78px;direction:rtl;outline:none;transition:border-color .2s;}
+    textarea:focus{border-color:var(--brand);}
+    .ok{display:none;text-align:center;color:var(--green);font-size:14px;font-weight:700;padding:13px;background:var(--green-bg);
+      border-radius:12px;margin-top:10px;}
+    .ok.show{display:block;}
+    .foot{text-align:center;font-size:11.5px;color:var(--faint);margin-top:18px;}
   </style>
 </head>
 <body>
   <div class="card">
-    <div class="shield-wrap"><div class="shield-icon">🛡️</div></div>
-    <div class="title" id="titleEl">גישה חסומה</div>
-    <div class="domain" id="domainEl">—</div>
-    <div class="badge-wrap"><span class="badge" id="badgeEl">מדיניות סינון</span></div>
-    <p class="desc">גישה לאתר/אפליקציה זו חסומה על-ידי מנהל המערכת.<br>אפשר לשלוח בקשת פתיחה למנהל.</p>
-    <div class="divider"></div>
-
-    <button class="btn btn-primary" onclick="showForm()" id="btnRequest">
-      <span>📨</span><span>בקש פתיחה</span>
-    </button>
-    <button class="btn btn-ghost" onclick="goHome()">
-      <span>🏠</span><span>מסך ראשי</span>
-    </button>
-
-    <div class="form-section" id="formSection">
-      <div class="divider" style="margin-top:10px"></div>
-      <div class="form-label">סיבת הבקשה (אופציונלי):</div>
-      <textarea id="reasonEl" placeholder="למה אתה צריך גישה?"></textarea>
-      <button class="btn btn-send" onclick="sendRequest()">
-        <span>✉️</span><span>שלח למנהל</span>
-      </button>
-      <div class="success" id="successEl">✅ הבקשה נשלחה! המנהל יחזור אליך בהקדם.</div>
+    <div class="emblem">
+      <svg viewBox="0 0 24 24"><path d="M12 1 3 5v6c0 5.5 3.8 10.7 9 12 5.2-1.3 9-6.5 9-12V5l-9-4Zm0 3.18 6 2.67V11c0 4.52-2.98 8.69-6 9.93V4.18Z"/></svg>
     </div>
-    <div class="footer">Sinun Filter · הגנה על פרטיות ותוכן</div>
+    <div class="title" id="titleEl">גישה חסומה</div>
+    <div class="badge" id="badgeEl">
+      <svg viewBox="0 0 24 24"><path d="M12 1 3 5v6c0 5.5 3.8 10.7 9 12 5.2-1.3 9-6.5 9-12V5l-9-4Z"/></svg>
+      <span id="badgeText">מדיניות סינון</span>
+    </div>
+    <div class="target" id="targetEl">—</div>
+    <p class="desc">התוכן חסום על‑ידי מנהל המערכת. ניתן לשלוח בקשה למנהל לפתיחת הגישה.</p>
+
+    <button class="btn btn-primary" id="btnRequest" onclick="showForm()">
+      <svg viewBox="0 0 24 24"><path d="M20 4H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2Zm0 4-8 5-8-5V6l8 5 8-5v2Z"/></svg>
+      בקשת פתיחה
+    </button>
+    <button class="btn btn-soft" onclick="goHome()">
+      <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8Z"/></svg>
+      חזרה למסך הבית
+    </button>
+
+    <div class="form" id="formEl">
+      <div class="label">סיבת הבקשה (אופציונלי):</div>
+      <textarea id="reasonEl" placeholder="למה צריך גישה לתוכן הזה?"></textarea>
+      <button class="btn btn-primary" style="margin-top:11px" onclick="sendRequest()">
+        <svg viewBox="0 0 24 24"><path d="M2 21 23 12 2 3v7l15 2-15 2Z"/></svg>
+        שליחה למנהל
+      </button>
+      <div class="ok" id="okEl">✓ הבקשה נשלחה! המנהל יחזור אליכם בהקדם.</div>
+    </div>
+
+    <div class="foot">Sinun · הגנה על תוכן ופרטיות</div>
   </div>
 
   <script>
     var _type = "domain", _target = "";
-
-    /* נקרא מהאפליקציה אחרי טעינת הדף — וגם בכל חסימה חוזרת (ה-WebView ממוחזר) */
-    function init(type, target, title) {
-      _type = type || "domain";
-      _target = target || "";
+    function init(type, target, title){
+      _type = type || "domain"; _target = target || "";
       document.getElementById("titleEl").textContent = title || "גישה חסומה";
-      document.getElementById("domainEl").textContent = target || "—";
-      document.getElementById("badgeEl").textContent =
-        type === "app" ? "📱 אפליקציה חסומה" : "🌐 אתר חסום";
-      /* איפוס מצב הטופס — כי אותו WebView משמש לחסימות עוקבות */
-      document.getElementById("formSection").classList.remove("visible");
+      document.getElementById("targetEl").textContent = target || "—";
+      document.getElementById("badgeText").textContent = (type === "app") ? "אפליקציה חסומה" : "אתר חסום";
+      /* איפוס — אותו WebView משמש לחסימות עוקבות */
+      document.getElementById("formEl").classList.remove("show");
       document.getElementById("btnRequest").style.display = "";
-      document.getElementById("successEl").classList.remove("visible");
-      var sendBtn = document.querySelector(".btn-send");
-      if (sendBtn) sendBtn.disabled = false;
-      var reason = document.getElementById("reasonEl");
-      if (reason) reason.value = "";
+      document.getElementById("okEl").classList.remove("show");
+      var r = document.getElementById("reasonEl"); if(r) r.value = "";
     }
-
-    function showForm() {
-      var f = document.getElementById("formSection");
-      f.classList.add("visible");
+    function showForm(){
+      document.getElementById("formEl").classList.add("show");
       document.getElementById("btnRequest").style.display = "none";
       document.getElementById("reasonEl").focus();
     }
-
-    function goHome() {
-      if (window.SinunBridge) window.SinunBridge.goHome();
-    }
-
-    function sendRequest() {
+    function goHome(){ if(window.SinunBridge) window.SinunBridge.goHome(); }
+    function sendRequest(){
       var reason = document.getElementById("reasonEl").value.trim();
-      if (window.SinunBridge) {
-        window.SinunBridge.requestOpening(_type, _target, reason || "ללא סיבה");
-      }
-      document.getElementById("successEl").classList.add("visible");
-      document.querySelector(".btn-send").disabled = true;
+      if(window.SinunBridge) window.SinunBridge.requestOpening(_type, _target, reason || "ללא סיבה");
+      document.getElementById("okEl").classList.add("show");
+      document.querySelector(".form .btn-primary").disabled = true;
     }
   </script>
 </body>

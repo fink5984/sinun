@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<title>Sinun</title>
+<style>
+  :root{
+    --bg1:#eef3fb; --bg2:#dfe9f7;
+    --card:#ffffff; --ink:#16283d; --muted:#63748b; --faint:#93a1b5;
+    --line:#e6ecf5;
+    --navy:#173a67; --brand:#2f6cdf; --brand-ink:#1e5ac0;
+    --green:#1f9254; --green-bg:#e6f4ec;
+    --red:#d0483f; --red-bg:#fbeae9;
+    --gold:#b9832e;
+    --shadow:0 10px 30px rgba(23,58,103,.10);
+    --shadow-sm:0 4px 14px rgba(23,58,103,.08);
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+  html,body{height:100%;}
+  body{
+    font-family:"Heebo","Assistant",-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+    color:var(--ink);
+    background:linear-gradient(160deg,var(--bg1),var(--bg2));
+    min-height:100%;
+    -webkit-font-smoothing:antialiased;
+  }
+  .screen{display:none;flex-direction:column;min-height:100vh;padding:26px 20px 30px;}
+  .screen.active{display:flex;animation:fade .3s ease;}
+  @keyframes fade{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:none;}}
+
+  .brandbar{display:flex;align-items:center;gap:11px;margin-bottom:22px;}
+  .logo{width:40px;height:40px;border-radius:12px;background:linear-gradient(150deg,var(--navy),var(--brand));
+    display:flex;align-items:center;justify-content:center;box-shadow:0 6px 16px rgba(47,108,223,.35);}
+  .logo svg{width:22px;height:22px;fill:#fff;}
+  .brandbar .n{font-weight:800;font-size:19px;letter-spacing:-.01em;}
+  .brandbar .v{margin-inline-start:auto;font-size:12px;color:var(--faint);font-weight:600;}
+
+  h1{font-size:24px;font-weight:800;letter-spacing:-.02em;line-height:1.25;}
+  .sub{color:var(--muted);font-size:14.5px;line-height:1.6;margin-top:8px;}
+
+  .card{background:var(--card);border-radius:18px;box-shadow:var(--shadow);padding:20px;}
+  .card + .card{margin-top:14px;}
+
+  /* ---- enroll ---- */
+  #enroll{justify-content:center;align-items:center;text-align:center;}
+  #enroll .hero{width:76px;height:76px;border-radius:22px;background:linear-gradient(150deg,var(--navy),var(--brand));
+    display:flex;align-items:center;justify-content:center;margin:0 auto 22px;box-shadow:0 12px 30px rgba(47,108,223,.35);}
+  #enroll .hero svg{width:38px;height:38px;fill:#fff;}
+  #enroll .box{width:100%;max-width:360px;}
+  .field{width:100%;text-align:center;font-size:22px;font-weight:800;letter-spacing:6px;
+    padding:16px;border:2px solid var(--line);border-radius:14px;background:#fbfcfe;color:var(--ink);
+    outline:none;transition:border-color .2s,box-shadow .2s;text-transform:uppercase;}
+  .field:focus{border-color:var(--brand);box-shadow:0 0 0 4px rgba(47,108,223,.14);}
+  .field::placeholder{color:var(--faint);letter-spacing:3px;font-weight:600;}
+  .err{color:var(--red);font-size:13px;font-weight:600;margin-top:12px;min-height:18px;}
+
+  /* ---- buttons ---- */
+  .btn{display:flex;align-items:center;justify-content:center;gap:9px;width:100%;
+    padding:15px;border:none;border-radius:14px;font-size:16px;font-weight:800;font-family:inherit;
+    cursor:pointer;transition:transform .1s,filter .15s,box-shadow .2s;}
+  .btn:active{transform:scale(.98);}
+  .btn-primary{background:linear-gradient(150deg,var(--brand),var(--brand-ink));color:#fff;
+    box-shadow:0 8px 20px rgba(47,108,223,.3);}
+  .btn-primary:disabled{opacity:.5;box-shadow:none;}
+  .btn-soft{background:#eef2f9;color:var(--navy);}
+  .btn-ghost{background:transparent;color:var(--muted);box-shadow:none;font-weight:700;font-size:14px;}
+
+  /* ---- onboarding ---- */
+  .progress-wrap{margin:18px 0 20px;}
+  .progress-top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:9px;}
+  .progress-top .p1{font-size:13px;font-weight:700;color:var(--navy);}
+  .progress-top .p2{font-size:12px;color:var(--muted);}
+  .bar{height:9px;border-radius:9px;background:#dde6f3;overflow:hidden;}
+  .bar > i{display:block;height:100%;border-radius:9px;background:linear-gradient(90deg,var(--brand),var(--navy));
+    width:0;transition:width .5s cubic-bezier(.3,1.2,.5,1);}
+
+  .step{display:flex;gap:14px;padding:16px;border-radius:16px;background:var(--card);
+    box-shadow:var(--shadow-sm);border:1.5px solid transparent;transition:all .25s;margin-bottom:12px;opacity:1;}
+  .step.done{background:#f4f9f5;box-shadow:none;}
+  .step.pending{opacity:.55;box-shadow:none;background:#f6f8fc;}
+  .step.current{border-color:var(--brand);box-shadow:0 10px 26px rgba(47,108,223,.16);}
+  .step .mark{width:34px;height:34px;border-radius:11px;flex-shrink:0;display:flex;align-items:center;
+    justify-content:center;font-weight:800;font-size:15px;}
+  .step.done .mark{background:var(--green-bg);color:var(--green);}
+  .step.current .mark{background:linear-gradient(150deg,var(--brand),var(--navy));color:#fff;}
+  .step.pending .mark{background:#e7ecf4;color:var(--faint);}
+  .step .mark svg{width:18px;height:18px;}
+  .step .body{flex:1;min-width:0;}
+  .step .t{font-weight:800;font-size:15.5px;display:flex;align-items:center;gap:8px;}
+  .step .t .tag{font-size:11px;font-weight:700;color:var(--green);background:var(--green-bg);
+    padding:2px 9px;border-radius:20px;}
+  .step .d{color:var(--muted);font-size:13px;line-height:1.55;margin-top:5px;}
+  .step .act{margin-top:14px;}
+  .step.current .d{color:#4b5c72;}
+  .hint{color:var(--faint);font-size:12.5px;text-align:center;margin-top:6px;}
+
+  /* ---- home ---- */
+  .status-card{position:relative;overflow:hidden;background:linear-gradient(155deg,var(--navy),#1f4e88);color:#fff;
+    border-radius:20px;padding:24px;box-shadow:0 14px 34px rgba(23,58,103,.28);}
+  .status-card .ring{position:absolute;inset-inline-end:-40px;top:-40px;width:150px;height:150px;border-radius:50%;
+    background:rgba(255,255,255,.06);}
+  .status-card .shield{width:56px;height:56px;border-radius:16px;background:rgba(255,255,255,.14);
+    display:flex;align-items:center;justify-content:center;margin-bottom:16px;}
+  .status-card .shield svg{width:30px;height:30px;fill:#fff;}
+  .status-card .st{font-size:22px;font-weight:800;display:flex;align-items:center;gap:10px;}
+  .status-card .st .dot{width:11px;height:11px;border-radius:50%;box-shadow:0 0 0 4px rgba(255,255,255,.12);}
+  .status-card .stsub{color:rgba(255,255,255,.8);font-size:13.5px;margin-top:6px;}
+
+  .metrics{display:flex;gap:12px;margin-top:14px;}
+  .metric{flex:1;background:var(--card);border-radius:16px;padding:16px;box-shadow:var(--shadow-sm);text-align:center;}
+  .metric .num{font-size:26px;font-weight:800;color:var(--navy);}
+  .metric .lbl{font-size:12px;color:var(--muted);margin-top:2px;}
+
+  .list-row{display:flex;align-items:center;gap:12px;padding:13px 4px;}
+  .list-row + .list-row{border-top:1px solid var(--line);}
+  .list-row .ico{width:36px;height:36px;border-radius:11px;background:#eef2f9;display:flex;align-items:center;
+    justify-content:center;flex-shrink:0;color:var(--brand);}
+  .list-row .ico svg{width:19px;height:19px;}
+  .list-row .txt{flex:1;min-width:0;}
+  .list-row .txt b{font-size:14.5px;font-weight:700;}
+  .list-row .txt span{display:block;color:var(--muted);font-size:12.5px;margin-top:1px;}
+  .list-row .ok{color:var(--green);} .list-row .warn{color:var(--red);}
+  .card-title{font-size:13px;font-weight:800;color:var(--navy);text-transform:none;margin-bottom:6px;letter-spacing:.01em;}
+  .foot{text-align:center;color:var(--faint);font-size:11.5px;margin-top:auto;padding-top:22px;}
+</style>
+</head>
+<body>
+
+<!-- ============ ENROLL ============ -->
+<section class="screen" id="scr-enroll">
+  <div class="box" style="margin:auto;max-width:360px;width:100%;text-align:center">
+    <div class="hero"><svg viewBox="0 0 24 24"><path d="M12 1 3 5v6c0 5.5 3.8 10.7 9 12 5.2-1.3 9-6.5 9-12V5l-9-4Zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8Z"/></svg></div>
+    <h1>ברוכים הבאים ל‑Sinun</h1>
+    <p class="sub">הזינו את קוד ההצטרפות שקיבלתם מהמנהל כדי לחבר את המכשיר.</p>
+    <div style="height:22px"></div>
+    <input class="field" id="code" maxlength="8" placeholder="קוד" autocomplete="off" autocapitalize="characters" />
+    <div class="err" id="enrollErr"></div>
+    <button class="btn btn-primary" id="enrollBtn" onclick="doEnroll()">חבר מכשיר</button>
+  </div>
+</section>
+
+<!-- ============ ONBOARDING ============ -->
+<section class="screen" id="scr-onboard">
+  <div class="brandbar"><div class="logo"><svg viewBox="0 0 24 24"><path d="M12 1 3 5v6c0 5.5 3.8 10.7 9 12 5.2-1.3 9-6.5 9-12V5l-9-4Z"/></svg></div><span class="n">Sinun</span></div>
+  <h1>הגדרת ההגנה</h1>
+  <p class="sub">עוד כמה צעדים קצרים והמכשיר יהיה מוגן. לחצו "המשך", בצעו את ההגדרה, וחזרו לכאן.</p>
+  <div class="progress-wrap">
+    <div class="progress-top"><span class="p1" id="progLabel">0 מתוך 4 הושלמו</span><span class="p2" id="progPct">0%</span></div>
+    <div class="bar"><i id="progBar"></i></div>
+  </div>
+  <div id="steps"></div>
+</section>
+
+<!-- ============ HOME ============ -->
+<section class="screen" id="scr-home">
+  <div class="brandbar"><div class="logo"><svg viewBox="0 0 24 24"><path d="M12 1 3 5v6c0 5.5 3.8 10.7 9 12 5.2-1.3 9-6.5 9-12V5l-9-4Z"/></svg></div><span class="n">Sinun</span><span class="v" id="ver"></span></div>
+
+  <div class="status-card">
+    <div class="ring"></div>
+    <div class="shield"><svg viewBox="0 0 24 24"><path d="M12 1 3 5v6c0 5.5 3.8 10.7 9 12 5.2-1.3 9-6.5 9-12V5l-9-4Zm-1.2 15-3.5-3.5 1.4-1.4 2.1 2.1 4.5-4.5 1.4 1.4-5.9 5.9Z"/></svg></div>
+    <div class="st"><span class="dot" id="homeDot"></span><span id="homeStatus">מוגן</span></div>
+    <div class="stsub" id="homeStatusSub">הסינון פעיל ומגן על המכשיר</div>
+  </div>
+
+  <div class="metrics">
+    <div class="metric"><div class="num" id="mAllowed">0</div><div class="lbl">אתרים מותרים</div></div>
+    <div class="metric"><div class="num" id="mBlocked">0</div><div class="lbl">אתרים חסומים</div></div>
+  </div>
+
+  <div class="card" style="margin-top:14px">
+    <div class="card-title">מצב ההרשאות</div>
+    <div id="permList"></div>
+  </div>
+
+  <div class="card">
+    <div class="list-row" style="padding-top:2px">
+      <div class="ico"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 2H4a2 2 0 0 0-2 2v18l4-4h14a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2Zm-7 12h-2v-2h2v2Zm0-4h-2V6h2v4Z"/></svg></div>
+      <div class="txt"><b>צריכים לפתוח אתר או אפליקציה?</b><span>שלחו בקשה למנהל לאישור</span></div>
+    </div>
+    <button class="btn btn-soft" style="margin-top:10px" onclick="Native.action('request_opening')">שליחת בקשת פתיחה</button>
+  </div>
+
+  <div class="foot">Sinun · הגנה על תוכן ופרטיות</div>
+</section>
+
+<script>
+  var STEP_ICON_CHECK = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.2 4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2Z"/></svg>';
+  var STEP_META = {
+    usage:   {t:'גישה לנתוני שימוש', d:'מאפשר ל‑Sinun לזהות איזו אפליקציה נפתחת ולחסום אפליקציות אסורות. במסך שייפתח בחרו "Sinun" והפעילו את המתג.'},
+    overlay: {t:'הצגה מעל אפליקציות', d:'מאפשר להציג את מסך החסימה מעל אפליקציה אסורה. במסך שייפתח הפעילו את המתג עבור "Sinun".'},
+    admin:   {t:'הגנה מפני הסרה', d:'מונע כיבוי או הסרה של הסינון ללא אישור מנהל. במסך שייפתח לחצו "הפעל".'},
+    vpn:     {t:'הפעלת הסינון', d:'הצעד האחרון — הפעלת חיבור הסינון המקומי שמסנן את הגלישה. אשרו את בקשת ה‑VPN.'}
+  };
+  var STATE = null;
+
+  /* נקרא מהאפליקציה (Kotlin) עם מצב עדכני בכל טעינה וכל חזרה למסך */
+  function setState(json){
+    STATE = (typeof json === 'string') ? JSON.parse(json) : json;
+    if(!STATE.enrolled){ show('scr-enroll'); return; }
+    if(!STATE.allDone){ renderOnboard(); show('scr-onboard'); return; }
+    renderHome(); show('scr-home');
+  }
+  function show(id){
+    document.querySelectorAll('.screen').forEach(function(s){ s.classList.toggle('active', s.id===id); });
+    window.scrollTo(0,0);
+  }
+
+  function renderOnboard(){
+    var steps = STATE.steps || [];
+    var doneCount = steps.filter(function(s){return s.done;}).length;
+    var pct = steps.length ? Math.round(doneCount/steps.length*100) : 0;
+    document.getElementById('progLabel').textContent = doneCount + ' מתוך ' + steps.length + ' הושלמו';
+    document.getElementById('progPct').textContent = pct + '%';
+    document.getElementById('progBar').style.width = pct + '%';
+
+    var currentSet = false, html = '';
+    for(var i=0;i<steps.length;i++){
+      var s = steps[i], m = STEP_META[s.id] || {t:s.id,d:''};
+      var cls, mark, tag='', act='';
+      if(s.done){ cls='done'; mark=STEP_ICON_CHECK; tag='<span class="tag">הוגדר ✓</span>'; }
+      else if(!currentSet){ cls='current'; currentSet=true; mark=(i+1);
+        var label = (s.id==='vpn') ? 'הפעל עכשיו' : 'המשך · פתח הגדרות';
+        act='<div class="act"><button class="btn btn-primary" onclick="Native.action(\''+s.id+'\')">'+label+'</button><div class="hint">לאחר ההגדרה חזרו לכאן</div></div>';
+      }
+      else { cls='pending'; mark=(i+1); }
+      html += '<div class="step '+cls+'"><div class="mark">'+mark+'</div><div class="body">'
+            + '<div class="t">'+m.t+tag+'</div><div class="d">'+m.d+'</div>'+act+'</div></div>';
+    }
+    document.getElementById('steps').innerHTML = html;
+  }
+
+  function renderHome(){
+    document.getElementById('ver').textContent = STATE.version || '';
+    var prot = !!STATE.protected;
+    document.getElementById('homeDot').style.background = prot ? '#4ade80' : '#f87171';
+    document.getElementById('homeStatus').textContent = prot ? 'מוגן' : 'לא מוגן';
+    document.getElementById('homeStatusSub').textContent = prot ? ('הסינון פעיל · ' + (STATE.policyName||'')) : 'הסינון כבוי — הפעילו אותו מחדש';
+    document.getElementById('mAllowed').textContent = STATE.allowedCount||0;
+    document.getElementById('mBlocked').textContent = STATE.blockedCount||0;
+    var perms = STATE.perms || [];
+    document.getElementById('permList').innerHTML = perms.map(function(p){
+      var ic = p.ok
+        ? '<span class="ok"><svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M9 16.2 4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4Z"/></svg></span>'
+        : '<span class="warn"><svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M1 21h22L12 2 1 21Zm12-3h-2v-2h2v2Zm0-4h-2v-4h2v4Z"/></svg></span>';
+      return '<div class="list-row"><div class="ico">'+ic+'</div><div class="txt"><b>'+p.title+'</b><span>'+(p.ok?'פעיל':'נדרש טיפול')+'</span></div></div>';
+    }).join('');
+  }
+
+  function doEnroll(){
+    var code = document.getElementById('code').value.trim();
+    if(!code){ document.getElementById('enrollErr').textContent='נא להזין קוד'; return; }
+    document.getElementById('enrollErr').textContent='';
+    document.getElementById('enrollBtn').disabled = true;
+    document.getElementById('enrollBtn').textContent = 'מתחבר…';
+    Native.enroll(code);
+  }
+  /* נקרא מהאפליקציה במקרה של שגיאת חיבור */
+  function enrollError(msg){
+    document.getElementById('enrollBtn').disabled = false;
+    document.getElementById('enrollBtn').textContent = 'חבר מכשיר';
+    document.getElementById('enrollErr').textContent = msg || 'החיבור נכשל, נסו שוב';
+  }
+</script>
+</body>
+</html>

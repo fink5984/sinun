@@ -20,6 +20,8 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import org.json.JSONObject
 import java.net.DatagramSocket
@@ -105,6 +107,11 @@ class FilterVpnService : VpnService(), FilterEventSink {
             (application as SinunApp).policyRepository.reportInstalledApps()
         }
 
+        // רענון policy תכוף — כדי שאישור בקשת פתיחה (או חסימה חדשה) ייכנס לתוקף
+        // תוך שניות במקום להמתין ל-heartbeat של 15 דק'. אחרת אפליקציה שאושרה
+        // ממשיכה להיחסם כי המנוע עדיין מחזיק את ה-policy הישן.
+        startPolicyRefreshLoop()
+
         running = true
         updateNotification("🛡️ מוגן · policy ${policyEngine.policyId}")
     }
@@ -133,6 +140,32 @@ class FilterVpnService : VpnService(), FilterEventSink {
         monitor.start()
         appMonitor = monitor
         blockOverlay = overlay
+    }
+
+    /** לולאת רענון policy: מושכת מהשרת כל POLICY_REFRESH_MS, ואם הגרסה השתנתה —
+     *  טוענת מחדש את המנוע ומאלצת הערכה מחדש של האפליקציה בחזית (כדי להסיר חסימה
+     *  שאושרה, או להחיל חסימה חדשה, מיד). */
+    private fun startPolicyRefreshLoop() {
+        scope.launch {
+            val repo = (application as SinunApp).policyRepository
+            while (isActive) {
+                delay(POLICY_REFRESH_MS)
+                val state = repo.refreshPolicy()
+                if (state is PolicyState.Active) {
+                    val newVersion = state.policy.optLong("version", -1)
+                    if (newVersion != policyEngine.version) {
+                        policyEngine.load(state.policy)
+                        appMonitor?.invalidate()
+                        // אם האפליקציה שבחזית כבר לא חסומה — מסירים את מסך החסימה.
+                        val fg = appMonitor?.foregroundPackage
+                        if (fg == null || !policyEngine.isAppBlocked(fg)) {
+                            blockOverlay?.hideIfKind(BlockOverlay.Kind.APP)
+                        }
+                        updateNotification("🛡️ מוגן · policy ${policyEngine.policyId}")
+                    }
+                }
+            }
+        }
     }
 
     private fun sendOpeningRequest(type: String, target: String) {
@@ -244,6 +277,7 @@ class FilterVpnService : VpnService(), FilterEventSink {
         private const val UPSTREAM_DNS = "8.8.8.8"
         private const val NOTIFICATION_ID = 1
         private const val BLOCK_DEDUP_MS = 60_000L
+        private const val POLICY_REFRESH_MS = 20_000L
 
         @Volatile
         var running: Boolean = false

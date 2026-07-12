@@ -17,60 +17,75 @@ _BLOCK_PAGE_TEMPLATE = """\
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>גישה חסומה — Sinun</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
   <style>
-    :root{{--bg:#0d1117;--surface:#161b22;--border:#30363d;--text:#e6edf3;--muted:#8b949e;--red:#f85149;--blue:#58a6ff;--green:#3fb950;}}
-    *{{box-sizing:border-box;margin:0;padding:0;}}
-    body{{background:var(--bg);color:var(--text);font-family:-apple-system,"Segoe UI",Roboto,Arial,sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh;padding:20px;}}
-    .card{{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:32px 24px 24px;max-width:440px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.5);animation:up .3s ease;}}
-    @keyframes up{{from{{opacity:0;transform:translateY(16px)}}to{{opacity:1;transform:none}}}}
-    .icon{{width:68px;height:68px;background:rgba(248,81,73,.12);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:34px;margin:0 auto 18px;}}
-    h1{{font-size:22px;font-weight:800;color:var(--red);text-align:center;margin-bottom:6px;}}
-    .domain{{text-align:center;font-family:monospace;font-size:14px;color:var(--muted);margin-bottom:12px;word-break:break-all;}}
-    .badge{{display:inline-block;background:rgba(248,81,73,.14);border:1px solid rgba(248,81,73,.3);color:var(--red);padding:3px 12px;border-radius:20px;font-size:11px;font-weight:700;margin-bottom:18px;}}
-    .badge-wrap{{text-align:center;}}
-    p{{font-size:13.5px;color:var(--muted);text-align:center;line-height:1.65;margin-bottom:22px;}}
-    hr{{border:none;border-top:1px solid var(--border);margin-bottom:20px;}}
-    .btn{{display:flex;align-items:center;justify-content:center;gap:7px;width:100%;padding:13px;border-radius:10px;font-size:14.5px;font-weight:700;border:none;cursor:pointer;margin-bottom:10px;font-family:inherit;}}
-    .btn-primary{{background:var(--blue);color:#fff;}}
-    .btn-ghost{{background:transparent;border:1px solid var(--border);color:var(--muted);}}
-    .form-section{{display:none;margin-top:4px;}}
-    .form-section.show{{display:block;}}
-    label{{font-size:12px;color:var(--muted);display:block;margin-bottom:6px;text-align:right;}}
-    textarea{{width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:10px;border-radius:8px;font-size:13px;font-family:inherit;resize:vertical;min-height:72px;direction:rtl;outline:none;}}
-    .btn-send{{background:var(--green);color:#fff;width:100%;padding:12px;border-radius:9px;border:none;font-size:14px;font-weight:700;cursor:pointer;margin-top:10px;font-family:inherit;}}
-    .ok{{display:none;color:var(--green);font-size:13px;text-align:center;margin-top:10px;padding:10px;background:rgba(63,185,80,.1);border-radius:8px;}}
-    .ok.show{{display:block;}}
+    :root{--bg1:#eef3fb;--bg2:#dbe7f6;--card:#fff;--ink:#16283d;--muted:#63748b;--faint:#94a2b6;--line:#e6ecf5;--navy:#173a67;--brand:#2f6cdf;--brand-ink:#1e5ac0;--amber:#b9832e;--amber-bg:#fbf3e2;--green:#1f9254;--green-bg:#e6f4ec;}
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{font-family:"Heebo","Assistant",-apple-system,"Segoe UI",Roboto,Arial,sans-serif;color:var(--ink);background:linear-gradient(165deg,var(--bg1),var(--bg2));display:flex;align-items:center;justify-content:center;min-height:100vh;padding:22px;-webkit-font-smoothing:antialiased;}
+    .card{background:var(--card);border-radius:24px;padding:30px 24px 24px;max-width:420px;width:100%;box-shadow:0 20px 50px rgba(23,58,103,.18);animation:rise .35s cubic-bezier(.2,.9,.3,1.2);}
+    @keyframes rise{from{opacity:0;transform:translateY(22px) scale(.97);}to{opacity:1;transform:none;}}
+    .emblem{width:78px;height:78px;border-radius:24px;margin:0 auto 20px;display:flex;align-items:center;justify-content:center;background:linear-gradient(150deg,var(--navy),var(--brand));box-shadow:0 12px 26px rgba(47,108,223,.32);}
+    .emblem svg{width:40px;height:40px;fill:#fff;}
+    h1{font-size:23px;font-weight:800;text-align:center;letter-spacing:-.01em;}
+    .badge{display:flex;align-items:center;justify-content:center;gap:7px;width:fit-content;margin:12px auto 0;background:var(--amber-bg);color:var(--amber);font-size:12.5px;font-weight:700;padding:6px 14px;border-radius:20px;}
+    .badge svg{width:15px;height:15px;fill:currentColor;}
+    .domain{margin:16px 0 4px;background:#f4f7fc;border:1px solid var(--line);border-radius:12px;padding:13px 14px;text-align:center;font-size:15px;font-weight:700;color:var(--navy);word-break:break-all;font-family:ui-monospace,Consolas,monospace;}
+    p.desc{font-size:14px;color:var(--muted);text-align:center;line-height:1.6;margin:16px 4px 22px;}
+    .btn{display:flex;align-items:center;justify-content:center;gap:9px;width:100%;padding:15px;border:none;border-radius:14px;font-size:15.5px;font-weight:800;font-family:inherit;cursor:pointer;transition:transform .1s;margin-bottom:11px;}
+    .btn:active{transform:scale(.98);}
+    .btn svg{width:19px;height:19px;fill:currentColor;}
+    .btn-primary{background:linear-gradient(150deg,var(--brand),var(--brand-ink));color:#fff;box-shadow:0 8px 20px rgba(47,108,223,.3);}
+    .btn-soft{background:#eef2f9;color:var(--navy);}
+    .form{display:none;margin-top:6px;}
+    .form.show{display:block;}
+    label{font-size:13px;color:var(--muted);font-weight:600;display:block;margin:6px 0 8px;text-align:right;}
+    textarea{width:100%;background:#f9fbfe;border:1.5px solid var(--line);color:var(--ink);padding:13px;border-radius:12px;font-size:14px;font-family:inherit;resize:vertical;min-height:78px;direction:rtl;outline:none;}
+    textarea:focus{border-color:var(--brand);}
+    .ok{display:none;text-align:center;color:var(--green);font-size:14px;font-weight:700;padding:13px;background:var(--green-bg);border-radius:12px;margin-top:10px;}
+    .ok.show{display:block;}
+    .foot{text-align:center;font-size:11.5px;color:var(--faint);margin-top:18px;}
   </style>
 </head>
 <body>
   <div class="card">
-    <div class="icon">🛡️</div>
+    <div class="emblem"><svg viewBox="0 0 24 24"><path d="M12 1 3 5v6c0 5.5 3.8 10.7 9 12 5.2-1.3 9-6.5 9-12V5l-9-4Zm0 3.18 6 2.67V11c0 4.52-2.98 8.69-6 9.93V4.18Z"/></svg></div>
     <h1>גישה חסומה</h1>
+    <div class="badge"><svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Zm6.9 6h-2.95a15.7 15.7 0 0 0-1.38-3.56A8.03 8.03 0 0 1 18.9 8ZM12 4.04c.83 1.2 1.48 2.53 1.91 3.96h-3.82c.43-1.43 1.08-2.76 1.91-3.96ZM4.26 14a7.96 7.96 0 0 1 0-4h3.38a16.5 16.5 0 0 0 0 4H4.26Zm.84 2h2.95c.35 1.26.82 2.47 1.38 3.56A8 8 0 0 1 5.1 16Zm2.95-8H5.1a8 8 0 0 1 4.33-3.56C8.87 5.53 8.4 6.74 8.05 8ZM12 19.96c-.83-1.2-1.48-2.53-1.91-3.96h3.82A15.7 15.7 0 0 1 12 19.96ZM14.34 14H9.66a14.7 14.7 0 0 1 0-4h4.68a14.7 14.7 0 0 1 0 4Zm.25 5.56c.56-1.09 1.03-2.3 1.38-3.56h2.95a8.03 8.03 0 0 1-4.33 3.56ZM16.36 14a16.5 16.5 0 0 0 0-4h3.38a7.96 7.96 0 0 1 0 4h-3.38Z"/></svg><span>אתר חסום</span></div>
     <div class="domain">{domain}</div>
-    <div class="badge-wrap"><span class="badge">🌐 אתר חסום</span></div>
-    <p>גישה לאתר זה חסומה על-ידי מנהל המערכת.<br>לפתיחה שלח בקשה למנהל.</p>
-    <hr/>
-    <button class="btn btn-primary" onclick="showForm()" id="btnReq">📨 בקש פתיחה</button>
-    <button class="btn btn-ghost" onclick="history.back()">← חזרה</button>
-    <div class="form-section" id="formSec">
+    <p class="desc">הגישה לאתר זה חסומה על‑ידי מנהל המערכת.<br>ניתן לשלוח בקשה למנהל לפתיחת הגישה.</p>
+    <button class="btn btn-primary" onclick="showForm()" id="btnReq">
+      <svg viewBox="0 0 24 24"><path d="M20 4H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2Zm0 4-8 5-8-5V6l8 5 8-5v2Z"/></svg>
+      בקשת פתיחה
+    </button>
+    <button class="btn btn-soft" onclick="history.back()">
+      <svg viewBox="0 0 24 24"><path d="M15.4 7.4 14 6l-6 6 6 6 1.4-1.4L10.8 12Z"/></svg>
+      חזרה
+    </button>
+    <div class="form" id="formSec">
       <label>סיבת הבקשה (אופציונלי):</label>
-      <textarea id="reason" placeholder="למה אתה צריך גישה לאתר זה?"></textarea>
-      <button class="btn-send" onclick="sendReq()">✉️ שלח למנהל</button>
-      <div class="ok" id="okMsg">✅ הבקשה נשלחה! המנהל יחזור אליך בהקדם.</div>
+      <textarea id="reason" placeholder="למה צריך גישה לאתר הזה?"></textarea>
+      <button class="btn btn-primary" style="margin-top:11px" onclick="sendReq()">
+        <svg viewBox="0 0 24 24"><path d="M2 21 23 12 2 3v7l15 2-15 2Z"/></svg>
+        שליחה למנהל
+      </button>
+      <div class="ok" id="okMsg">✓ הבקשה נשלחה! המנהל יחזור אליכם בהקדם.</div>
     </div>
+    <div class="foot">Sinun · הגנה על תוכן ופרטיות</div>
   </div>
   <script>
     var domain = "{domain}", deviceId = "{device_id}";
-    function showForm(){{ document.getElementById("formSec").classList.add("show"); document.getElementById("btnReq").style.display="none"; }}
-    function sendReq(){{
+    function showForm(){ document.getElementById("formSec").classList.add("show"); document.getElementById("btnReq").style.display="none"; }
+    function sendReq(){
       var reason = document.getElementById("reason").value.trim() || "ללא סיבה";
-      fetch("/api/requests",{{method:"POST",headers:{{"Content-Type":"application/json"}},
-        body:JSON.stringify({{device_id:deviceId,request_type:"domain",target:domain,reason:reason}})
-      }}).then(function(){{
+      fetch("/api/requests",{method:"POST",headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({device_id:deviceId,request_type:"domain",target:domain,reason:reason})
+      }).then(function(){
         document.getElementById("okMsg").classList.add("show");
-        document.querySelector(".btn-send").disabled=true;
-      }}).catch(function(){{ alert("שגיאה בשליחת הבקשה — נסה שוב."); }});
-    }}
+        document.querySelectorAll(".form .btn-primary")[0].disabled=true;
+      }).catch(function(){ alert("שגיאה בשליחת הבקשה — נסה שוב."); });
+    }
   </script>
 </body>
 </html>

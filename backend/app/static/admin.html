@@ -4,33 +4,36 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Sinun · מערכת ניהול</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <style>
     :root {
-      --bg:      #0a0d13;
-      --surface: #11151e;
-      --surface2:#161b26;
-      --s2:      #1a1f2b;
-      --s3:      #212836;
-      --border:  #242b3a;
-      --border2: #303849;
-      --text:    #e8eef6;
-      --muted:   #8b94a7;
-      --dim:     #5a6478;
-      --blue:    #3b82f6;
-      --blue2:   #6366f1;
-      --indigo:  #818cf8;
-      --green:   #22c55e;
-      --red:     #ef4444;
-      --amber:   #f59e0b;
-      --cyan:    #06b6d4;
-      --radius:  14px;
-      --radius-sm: 9px;
+      --bg:      #eef3fb;
+      --surface: #ffffff;
+      --surface2:#ffffff;
+      --s2:      #f4f7fc;
+      --s3:      #eaf0f8;
+      --border:  #e6ecf5;
+      --border2: #d7e0ec;
+      --text:    #16283d;
+      --muted:   #63748b;
+      --dim:     #93a1b5;
+      --blue:    #2f6cdf;
+      --blue2:   #1e5ac0;
+      --indigo:  #173a67;
+      --green:   #1f9254;
+      --red:     #d0483f;
+      --amber:   #b9832e;
+      --cyan:    #0e7490;
+      --radius:  16px;
+      --radius-sm: 10px;
       --sidebar: 250px;
-      --shadow:  0 12px 40px rgba(0,0,0,.45);
+      --shadow:  0 14px 40px rgba(23,58,103,.16);
     }
     *, *::before, *::after { box-sizing: border-box; }
     html { font-size: 14px; }
-    body { margin: 0; background: var(--bg); color: var(--text); font-family: -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; line-height: 1.5; -webkit-font-smoothing: antialiased; }
+    body { margin: 0; background: linear-gradient(170deg, #eef3fb, #e3ecf8); color: var(--text); font-family: "Heebo", "Assistant", -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; line-height: 1.5; -webkit-font-smoothing: antialiased; min-height: 100vh; }
     ::-webkit-scrollbar { width: 10px; height: 10px; }
     ::-webkit-scrollbar-track { background: transparent; }
     ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 6px; border: 2px solid var(--bg); }
@@ -60,7 +63,7 @@
 
     /* ---------- Main ---------- */
     main { padding: 0; min-width: 0; }
-    .topbar { position: sticky; top: 0; z-index: 20; background: rgba(10,13,19,.85); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border); padding: 14px 30px; display: flex; align-items: center; gap: 16px; }
+    .topbar { position: sticky; top: 0; z-index: 20; background: rgba(255,255,255,.82); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border); padding: 14px 30px; display: flex; align-items: center; gap: 16px; }
     .topbar h1 { font-size: 18px; font-weight: 800; margin: 0; letter-spacing: -.01em; }
     .topbar .sub { font-size: 12px; color: var(--muted); }
     .topbar-actions { margin-inline-start: auto; display: flex; align-items: center; gap: 10px; }
@@ -112,7 +115,7 @@
     .btn.primary { background: var(--blue);  color: #fff; }
     .btn.green   { background: var(--green); color: #fff; }
     .btn.red     { background: var(--red);   color: #fff; }
-    .btn.amber   { background: var(--amber); color: #1a1200; }
+    .btn.amber   { background: var(--amber); color: #fff; }
     .btn.ghost   { background: var(--s2); border: 1px solid var(--border2); color: var(--text); }
     .btn.ghost:hover { background: var(--s3); filter: none; }
     .btn.sm      { padding: 6px 11px; font-size: 11.5px; border-radius: 8px; }
@@ -175,7 +178,7 @@
     @keyframes slidein { from { opacity: 0; transform: translateX(-30px); } to { opacity: 1; transform: none; } }
 
     /* ---------- Modal ---------- */
-    .modal-back { position: fixed; inset: 0; background: rgba(0,0,0,.65); backdrop-filter: blur(4px); z-index: 150; display: none; align-items: center; justify-content: center; padding: 20px; }
+    .modal-back { position: fixed; inset: 0; background: rgba(23,40,61,.42); backdrop-filter: blur(4px); z-index: 150; display: none; align-items: center; justify-content: center; padding: 20px; }
     .modal-back.show { display: flex; animation: fade .2s ease; }
     .modal { background: var(--surface); border: 1px solid var(--border2); border-radius: var(--radius); max-width: 560px; width: 100%; box-shadow: var(--shadow); max-height: 88vh; overflow-y: auto; animation: slideup .25s ease; }
     @keyframes slideup { from { opacity: 0; transform: translateY(20px) scale(.98); } to { opacity: 1; transform: none; } }

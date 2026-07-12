@@ -17,6 +17,7 @@
     <string name="enroll_code_hint">לדוגמה: ABCD2345</string>
     <string name="enroll_confirm">חבר</string>
     <string name="enroll_failed">חיבור נכשל: %1$s</string>
+    <string name="enroll_failed_short">הקוד שגוי או שכבר נוצל. בדקו ונסו שוב.</string>
     <string name="perms_title">הרשאות לחסימת אפליקציות (App Control)</string>
     <string name="perm_usage">✔ גישה לנתוני שימוש</string>
     <string name="perm_usage_missing">① אשר גישה לנתוני שימוש</string>
