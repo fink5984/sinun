@@ -1,3 +1,9 @@
-# השרת נמצא ב-backend/. הקובץ הזה גורם ל-Railpack/Railway לזהות Python
-# ולבנות את השרת גם כשמפרסים משורש ה-repo (בלי לשנות Root Directory בדשבורד).
--r backend/requirements.txt
+# פריסה משורש ה-repo (Railway/Railpack). חייב להיות עצמאי — שלב ה-install מעתיק
+# רק את הקובץ הזה, בלי תיקיית backend/. שמור מסונכרן עם backend/requirements.txt.
+fastapi>=0.115
+uvicorn[standard]>=0.30
+sqlalchemy>=2.0
+pydantic>=2.7
+pydantic-settings>=2.3
+python-dotenv>=1.0
+psycopg2-binary>=2.9
