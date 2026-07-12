@@ -105,9 +105,13 @@
     function goHome(){ if(window.SinunBridge) window.SinunBridge.goHome(); }
     function sendRequest(){
       var reason = document.getElementById("reasonEl").value.trim();
-      if(window.SinunBridge) window.SinunBridge.requestOpening(_type, _target, reason || "ללא סיבה");
-      document.getElementById("okEl").classList.add("show");
-      document.querySelector(".form .btn-primary").disabled = true;
+      if(window.SinunBridge && window.SinunBridge.requestOpening){
+        window.SinunBridge.requestOpening(_type, _target, reason || "ללא סיבה");
+        document.getElementById("okEl").classList.add("show");
+        document.querySelector(".form .btn-primary").disabled = true;
+      } else {
+        alert("שגיאה: לא ניתן לשלוח בקשה כרגע. נסו שוב.");
+      }
     }
   </script>
 </body>

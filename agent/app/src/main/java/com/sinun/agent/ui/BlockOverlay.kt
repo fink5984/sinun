@@ -71,6 +71,11 @@ class BlockOverlay(private val context: Context) {
             ensureWebView()
             val wv = webView ?: return@post
 
+            // כבר מוצג מסך חסימה — לא מאתחלים מחדש. חשוב במיוחד לדפדפן: טעינת דף
+            // מייצרת עשרות שאילתות DNS חסומות (default-deny), וכל אחת הייתה מאפסת
+            // את טופס הבקשה שהמשתמש מילא. משאירים את המסך הקיים עד שנסגר.
+            if (attached) return@post
+
             bridge.kind = kind
             bridge.target = subtitle
             bridge.onRequest = onRequestOpening
@@ -82,9 +87,7 @@ class BlockOverlay(private val context: Context) {
             val doInit = { wv.evaluateJavascript("init(\"$type\",\"$t\",\"$h\")", null) }
             if (pageReady) doInit() else pendingInit = doInit
 
-            if (!attached) {
-                runCatching { wm.addView(wv, layoutParams); attached = true }
-            }
+            runCatching { wm.addView(wv, layoutParams); attached = true }
         }
     }
 

@@ -4,7 +4,10 @@ import android.app.Notification
 import android.app.PendingIntent
 import android.content.Intent
 import android.net.VpnService
+import android.os.Handler
+import android.os.Looper
 import android.os.ParcelFileDescriptor
+import android.widget.Toast
 import androidx.core.app.NotificationCompat
 import com.sinun.agent.SinunApp
 import com.sinun.agent.data.PolicyState
@@ -168,10 +171,27 @@ class FilterVpnService : VpnService(), FilterEventSink {
         }
     }
 
+    private val mainHandler = Handler(Looper.getMainLooper())
+
+    private fun toast(msg: String) = mainHandler.post {
+        Toast.makeText(applicationContext, msg, Toast.LENGTH_LONG).show()
+    }
+
+    /** שולח בקשת פתיחה עם משוב אמיתי למשתמש. בעבר השגיאות נבלעו בשקט (runCatching)
+     *  אז דף החסימה הראה "נשלח" גם כשהבקשה נכשלה (מכשיר לא מחובר / אין רשת). */
     private fun sendOpeningRequest(type: String, target: String) {
+        val repo = (application as SinunApp).policyRepository
+        if (!repo.isEnrolled) {
+            toast("המכשיר לא מחובר — פתחו את Sinun והזינו קוד הצטרפות")
+            return
+        }
         scope.launch {
-            (application as SinunApp).policyRepository
-                .runCatching { requestOpening(type, target, "בקשה מהמכשיר") }
+            try {
+                repo.requestOpening(type, target, "בקשה מהמכשיר")
+                toast("הבקשה נשלחה למנהל ✓")
+            } catch (e: Exception) {
+                toast("שליחת הבקשה נכשלה — בדקו חיבור לאינטרנט")
+            }
         }
     }
 
