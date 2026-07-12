@@ -15,8 +15,8 @@ android {
         versionCode = 1
         versionName = "0.1.0"
 
-        // כתובת השרת לפיתוח (אמולטור: 10.0.2.2 = localhost של המחשב)
-        buildConfigField("String", "API_BASE_URL", "\"http://10.0.2.2:8000\"")
+        // כתובת השרת. debug → פרודקשן ב-Railway; אפשר לעקוף מקומית עם 10.0.2.2:8000.
+        buildConfigField("String", "API_BASE_URL", "\"https://sinun-production.up.railway.app\"")
     }
 
     buildTypes {
