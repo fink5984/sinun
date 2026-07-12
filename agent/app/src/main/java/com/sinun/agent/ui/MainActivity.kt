@@ -63,6 +63,8 @@ class MainActivity : AppCompatActivity() {
         findViewById<Button>(R.id.btn_device_admin).setOnClickListener {
             startActivity(SinunDeviceAdminReceiver.activationIntent(this))
         }
+        findViewById<Button>(R.id.btn_request_removal).setOnClickListener { promptRemovalRequest() }
+        findViewById<Button>(R.id.btn_enter_removal_code).setOnClickListener { promptRemovalCode() }
 
         HeartbeatWorker.schedule(this)
         if (repo.isEnrolled) loadPolicy() else promptForEnrollmentCode()
@@ -138,11 +140,13 @@ class MainActivity : AppCompatActivity() {
 
     private fun renderStatus() {
         if (!::statusText.isInitialized) return
-        statusText.text = if (FilterVpnService.running) {
-            getString(R.string.status_protected)
-        } else {
-            getString(R.string.status_unprotected)
-        }
+        val protected = FilterVpnService.running
+        statusText.text = if (protected) getString(R.string.status_protected)
+                          else getString(R.string.status_unprotected)
+        // צביעת הנקודה: ירוק = מוגן, אדום = לא מוגן
+        val dotColor = if (protected) 0xFF3FB950.toInt() else 0xFFF85149.toInt()
+        val dot = findViewById<android.view.View?>(R.id.status_dot)
+        dot?.setBackgroundColor(dotColor)
     }
 
     private fun renderPolicy(state: PolicyState) {
@@ -180,5 +184,76 @@ class MainActivity : AppCompatActivity() {
                 Toast.makeText(this@MainActivity, getString(R.string.request_failed, e.message), Toast.LENGTH_LONG).show()
             }
         }
+    }
+
+    /**
+     * שלב 1 מתוך 2: המשתמש שולח בקשת הסרה למנהל.
+     * המנהל רואה את הבקשה בפאנל ויכול ליצור קוד חד-פעמי.
+     */
+    private fun promptRemovalRequest() {
+        val input = EditText(this).apply {
+            hint = getString(R.string.removal_request_hint)
+            inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_MULTI_LINE
+        }
+        AlertDialog.Builder(this)
+            .setTitle(R.string.removal_request_title)
+            .setMessage(R.string.removal_request_message)
+            .setView(input)
+            .setPositiveButton(getString(R.string.enroll_confirm)) { _, _ ->
+                val reason = input.text.toString().trim()
+                lifecycleScope.launch {
+                    try {
+                        repo.requestRemoval(reason.ifBlank { "ללא סיבה" })
+                        Toast.makeText(this@MainActivity, R.string.removal_request_sent, Toast.LENGTH_LONG).show()
+                    } catch (e: Exception) {
+                        Toast.makeText(
+                            this@MainActivity,
+                            getString(R.string.removal_request_failed, e.message),
+                            Toast.LENGTH_LONG,
+                        ).show()
+                    }
+                }
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
+    }
+
+    /**
+     * שלב 2 מתוך 2: המשתמש מזין את הקוד שקיבל מהמנהל.
+     * אם תקין — מבטל Device Admin ומפתח את אפשרות ההסרה.
+     */
+    private fun promptRemovalCode() {
+        val input = EditText(this).apply {
+            hint = getString(R.string.removal_code_hint)
+            inputType = InputType.TYPE_CLASS_NUMBER
+        }
+        AlertDialog.Builder(this)
+            .setTitle(R.string.removal_code_title)
+            .setMessage(R.string.removal_code_message)
+            .setView(input)
+            .setPositiveButton(getString(R.string.removal_code_confirm)) { _, _ ->
+                val code = input.text.toString().trim()
+                if (code.length != 6) {
+                    Toast.makeText(this, R.string.removal_code_invalid, Toast.LENGTH_SHORT).show()
+                    return@setPositiveButton
+                }
+                lifecycleScope.launch {
+                    val authorized = repo.verifyUninstallCode(code)
+                    if (!authorized) {
+                        Toast.makeText(this@MainActivity, R.string.removal_code_invalid, Toast.LENGTH_LONG).show()
+                        return@launch
+                    }
+                    Toast.makeText(this@MainActivity, R.string.removal_deactivating, Toast.LENGTH_SHORT).show()
+                    // שלב 1: ביטול Device Admin (כדי שהמערכת תאפשר הסרה)
+                    SinunDeviceAdminReceiver.deactivate(this@MainActivity)
+                    // שלב 2: פתיחת מסך הסרת האפליקציה של המערכת
+                    startActivity(
+                        Intent(Intent.ACTION_DELETE, Uri.parse("package:$packageName"))
+                            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
+                    )
+                }
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
     }
 }

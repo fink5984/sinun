@@ -71,6 +71,21 @@ class PolicyRepository(context: Context) {
         val id = deviceId ?: error("device not registered")
         api.createOpeningRequest(id, type, target, reason)
     }
+
+    /** שולח בקשת הסרת הסינון למנהל. */
+    suspend fun requestRemoval(reason: String) {
+        val id = deviceId ?: error("device not registered")
+        api.requestRemoval(id, reason)
+    }
+
+    /**
+     * מאמת קוד הסרה חד-פעמי מול השרת.
+     * @return true אם הקוד תקין (הסרה מאושרת), false אם לא.
+     */
+    suspend fun verifyUninstallCode(code: String): Boolean {
+        val id = deviceId ?: return false
+        return runCatching { api.verifyUninstallCode(id, code) }.getOrDefault(false)
+    }
 }
 
 sealed interface PolicyState {

@@ -1,4 +1,6 @@
 from datetime import datetime, timezone
+import hashlib
+import secrets
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
@@ -95,3 +97,41 @@ def report_event(device_id: str, payload: schemas.EventIn, db: Session = Depends
 @router.get("", response_model=list[schemas.DeviceOut])
 def list_devices(db: Session = Depends(get_db)):
     return db.query(models.Device).all()
+
+
+@router.post("/{device_id}/uninstall-code")
+def generate_uninstall_code(device_id: str, db: Session = Depends(get_db)):
+    """המנהל מייצר קוד חד-פעמי להסרת האפליקציה. תקף 30 דקות."""
+    device = db.get(models.Device, device_id)
+    if device is None:
+        raise HTTPException(status_code=404, detail="device not found")
+    # קוד 6 ספרות
+    code = f"{secrets.randbelow(1_000_000):06d}"
+    device.uninstall_code_hash = hashlib.sha256(code.encode()).hexdigest()
+    from datetime import timedelta
+    device.uninstall_code_expires_at = datetime.now(timezone.utc) + timedelta(minutes=30)
+    db.commit()
+    return {"code": code, "expires_minutes": 30}
+
+
+@router.post("/{device_id}/verify-uninstall")
+def verify_uninstall_code(device_id: str, payload: schemas.UninstallVerify, db: Session = Depends(get_db)):
+    """האפליקציה מאמתת את הקוד שהמשתמש הזין. אם תקין — מנקה ומחזיר authorized=true."""
+    device = db.get(models.Device, device_id)
+    if device is None:
+        raise HTTPException(status_code=404, detail="device not found")
+    if device.uninstall_code_hash is None or device.uninstall_code_expires_at is None:
+        raise HTTPException(status_code=409, detail="no uninstall code issued")
+    if datetime.now(timezone.utc) > device.uninstall_code_expires_at:
+        device.uninstall_code_hash = None
+        device.uninstall_code_expires_at = None
+        db.commit()
+        raise HTTPException(status_code=410, detail="code expired")
+    expected = hashlib.sha256(payload.code.strip().encode()).hexdigest()
+    if expected != device.uninstall_code_hash:
+        raise HTTPException(status_code=403, detail="invalid code")
+    # קוד נכון — נוקה מיד (חד-פעמי)
+    device.uninstall_code_hash = None
+    device.uninstall_code_expires_at = None
+    db.commit()
+    return {"authorized": True}

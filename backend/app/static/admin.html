@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="he" dir="rtl">
 <head>
   <meta charset="utf-8" />
@@ -6,311 +6,257 @@
   <title>Sinun · פאנל ניהול</title>
   <style>
     :root {
-      --bg: #0b0e14; --surface: #12161f; --surface2: #1a1f2b; --border: #262c3a;
-      --text: #e6edf3; --muted: #8b94a7; --accent: #3b82f6; --accent2: #6366f1;
-      --green: #22c55e; --red: #ef4444; --amber: #f59e0b; --radius: 12px;
+      --bg:      #0b0e14;
+      --surface: #12161f;
+      --s2:      #1a1f2b;
+      --s3:      #1f2535;
+      --border:  #262c3a;
+      --text:    #e6edf3;
+      --muted:   #8b94a7;
+      --dim:     #3d444d;
+      --blue:    #3b82f6;
+      --blue2:   #6366f1;
+      --green:   #22c55e;
+      --red:     #ef4444;
+      --amber:   #f59e0b;
+      --radius:  12px;
+      --sidebar: 240px;
     }
-    * { box-sizing: border-box; }
-    body { margin: 0; background: var(--bg); color: var(--text);
-      font-family: -apple-system, "Segoe UI", Roboto, Arial, sans-serif; font-size: 14px; }
-    .app { display: grid; grid-template-columns: 220px 1fr; min-height: 100vh; }
-    /* Sidebar */
-    aside { background: var(--surface); border-inline-start: 1px solid var(--border);
-      padding: 20px 14px; display: flex; flex-direction: column; gap: 4px; }
-    .brand { font-size: 18px; font-weight: 800; padding: 6px 10px 18px;
-      display: flex; align-items: center; gap: 8px; }
-    .brand small { color: var(--muted); font-weight: 500; font-size: 11px; }
-    .nav { background: none; border: 0; color: var(--muted); text-align: right;
-      padding: 10px 12px; border-radius: 9px; cursor: pointer; font-size: 14px;
-      display: flex; align-items: center; gap: 10px; width: 100%; font-family: inherit; }
-    .nav:hover { background: var(--surface2); color: var(--text); }
-    .nav.active { background: var(--accent); color: #fff; font-weight: 600; }
-    .nav .count { margin-inline-start: auto; background: rgba(255,255,255,.15);
-      padding: 1px 8px; border-radius: 20px; font-size: 12px; }
-    aside .foot { margin-top: auto; color: var(--muted); font-size: 11px; padding: 8px 10px; }
-    /* Main */
-    main { padding: 28px 32px; max-width: 1100px; }
-    h1 { font-size: 22px; margin: 0 0 4px; }
-    .sub { color: var(--muted); margin: 0 0 24px; }
-    .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 28px; }
-    .stat { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px; }
-    .stat .n { font-size: 30px; font-weight: 800; }
-    .stat .l { color: var(--muted); font-size: 12px; margin-top: 4px; }
-    .stat.warn .n { color: var(--amber); } .stat.bad .n { color: var(--red); }
-    .card { background: var(--surface); border: 1px solid var(--border);
-      border-radius: var(--radius); padding: 18px; margin-bottom: 18px; }
-    .card h2 { font-size: 16px; margin: 0 0 4px; }
-    .card .hint { color: var(--muted); font-size: 12px; margin: 0 0 14px; }
+    *, *::before, *::after { box-sizing: border-box; }
+    html { font-size: 14px; }
+    body { margin: 0; background: var(--bg); color: var(--text); font-family: -apple-system, "Segoe UI", Roboto, Arial, sans-serif; line-height: 1.5; }
+    .shell { display: grid; grid-template-columns: var(--sidebar) 1fr; min-height: 100vh; }
+    aside { background: var(--surface); border-inline-start: 1px solid var(--border); display: flex; flex-direction: column; position: sticky; top: 0; height: 100vh; overflow-y: auto; }
+    .brand { padding: 20px 16px 14px; border-bottom: 1px solid var(--border); margin-bottom: 8px; }
+    .brand-title { font-size: 17px; font-weight: 800; display: flex; align-items: center; gap: 8px; }
+    .brand-sub { font-size: 11px; color: var(--muted); margin-top: 3px; }
+    .conn-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); margin-inline-start: auto; }
+    .conn-dot.off { background: var(--red); }
+    nav { padding: 0 10px; flex: 1; }
+    .nav-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 9px; cursor: pointer; color: var(--muted); font-size: 13.5px; font-weight: 500; border: none; background: none; width: 100%; text-align: right; font-family: inherit; transition: background .15s, color .15s; }
+    .nav-item:hover { background: var(--s2); color: var(--text); }
+    .nav-item.active { background: var(--blue); color: #fff; font-weight: 700; }
+    .nav-badge { margin-inline-start: auto; background: rgba(255,255,255,.18); padding: 1px 8px; border-radius: 20px; font-size: 11px; min-width: 20px; text-align: center; }
+    .nav-item.active .nav-badge { background: rgba(0,0,0,.25); }
+    .sidebar-footer { padding: 14px 16px; border-top: 1px solid var(--border); font-size: 11px; color: var(--dim); }
+    main { padding: 28px 30px; max-width: 1140px; }
+    .page-head { margin-bottom: 24px; }
+    .page-head h1 { font-size: 20px; font-weight: 800; margin: 0 0 3px; }
+    .page-head p { color: var(--muted); margin: 0; font-size: 13px; }
+    .stats { display: grid; grid-template-columns: repeat(4,1fr); gap: 14px; margin-bottom: 24px; }
+    .stat { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px 16px; display: flex; flex-direction: column; gap: 4px; }
+    .stat-label { font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+    .stat-value { font-size: 28px; font-weight: 800; }
+    .stat-value.green { color: var(--green); } .stat-value.red { color: var(--red); } .stat-value.amber { color: var(--amber); } .stat-value.blue { color: var(--blue); }
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 18px; overflow: hidden; }
+    .card-head { padding: 14px 18px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 10px; }
+    .card-head h2 { font-size: 14px; font-weight: 700; margin: 0; flex: 1; }
+    .card-head p { font-size: 11.5px; color: var(--muted); margin: 0; }
+    .card-body { padding: 16px 18px; }
     table { width: 100%; border-collapse: collapse; }
-    th, td { text-align: right; padding: 9px 10px; border-bottom: 1px solid var(--border); }
-    th { color: var(--muted); font-weight: 500; font-size: 12px; }
+    th { font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); font-weight: 600; padding: 8px 12px; text-align: right; border-bottom: 1px solid var(--border); white-space: nowrap; }
+    td { padding: 10px 12px; border-bottom: 1px solid var(--border); vertical-align: middle; }
     tr:last-child td { border-bottom: 0; }
-    .mono { font-family: ui-monospace, Menlo, monospace; font-size: 12px; }
-    .badge { padding: 2px 9px; border-radius: 20px; font-size: 11px; font-weight: 700; white-space: nowrap; }
-    .badge.ok { background: rgba(34,197,94,.15); color: var(--green); }
-    .badge.bad { background: rgba(239,68,68,.15); color: var(--red); }
-    .badge.warn { background: rgba(245,158,11,.15); color: var(--amber); }
-    button { background: var(--accent); color: #fff; border: 0; border-radius: 8px;
-      padding: 8px 14px; font-size: 13px; cursor: pointer; font-weight: 600; font-family: inherit; }
-    button:hover { filter: brightness(1.1); }
-    button.ghost { background: transparent; border: 1px solid var(--border); color: var(--text); }
-    button.green { background: var(--green); } button.red { background: var(--red); }
-    button.sm { padding: 5px 10px; font-size: 12px; }
-    button:disabled { opacity: .5; cursor: default; }
-    input { background: var(--bg); border: 1px solid var(--border); color: var(--text);
-      border-radius: 8px; padding: 9px 12px; font-size: 13px; font-family: inherit; }
-    .row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
-    .code-box { font-family: ui-monospace, monospace; font-size: 24px; letter-spacing: 4px;
-      background: var(--bg); border: 1px dashed var(--accent); border-radius: 8px;
-      padding: 10px 18px; color: var(--accent); font-weight: 800; }
-    .empty { color: var(--muted); padding: 16px; text-align: center; }
-    .client { border: 1px solid var(--border); border-radius: var(--radius);
-      margin-bottom: 14px; overflow: hidden; }
-    .client-head { background: var(--surface2); padding: 14px 16px;
-      display: flex; align-items: center; gap: 12px; }
-    .client-head .name { font-weight: 700; font-size: 15px; }
-    .client-head .meta { color: var(--muted); font-size: 12px; }
-    .client-head .spacer { margin-inline-start: auto; }
-    .client-body { padding: 4px 16px 10px; }
-    .chip { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px;
-      padding: 6px 10px; font-size: 12px; display: inline-flex; gap: 6px; align-items: center; margin: 4px 0; }
+    tr:hover td { background: var(--s2); }
+    .mono { font-family: "SFMono-Regular", Consolas, monospace; font-size: 12px; }
+    .badge { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; white-space: nowrap; }
+    .badge.ok  { background: rgba(34,197,94,.15);  color: var(--green); }
+    .badge.bad { background: rgba(239,68,68,.15);   color: var(--red); }
+    .badge.warn{ background: rgba(245,158,11,.15);  color: var(--amber); }
+    .badge.info{ background: rgba(59,130,246,.15);  color: var(--blue); }
+    .btn { display: inline-flex; align-items: center; gap: 6px; border: none; border-radius: 8px; padding: 8px 14px; font-size: 12.5px; font-weight: 700; cursor: pointer; font-family: inherit; transition: filter .15s; white-space: nowrap; }
+    .btn:hover { filter: brightness(1.12); } .btn:disabled { opacity: .45; cursor: default; }
+    .btn.primary { background: var(--blue);  color: #fff; }
+    .btn.green   { background: var(--green); color: #fff; }
+    .btn.red     { background: var(--red);   color: #fff; }
+    .btn.ghost   { background: transparent; border: 1px solid var(--border); color: var(--text); }
+    .btn.sm      { padding: 5px 10px; font-size: 11.5px; border-radius: 7px; }
+    .input-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+    input { background: var(--bg); border: 1px solid var(--border); color: var(--text); border-radius: 8px; padding: 9px 12px; font-size: 13px; font-family: inherit; outline: none; }
+    input:focus { border-color: var(--blue); }
+    .code-box { font-family: "SFMono-Regular", Consolas, monospace; font-size: 26px; letter-spacing: 5px; font-weight: 800; background: var(--bg); border: 1.5px dashed var(--blue); border-radius: 8px; padding: 10px 20px; color: var(--blue); display: inline-block; }
+    .device-row { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 10px; overflow: hidden; }
+    .device-head { background: var(--s2); padding: 12px 16px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .device-name { font-weight: 700; font-size: 14px; }
+    .device-meta { color: var(--muted); font-size: 12px; }
+    .device-body { padding: 6px 16px 10px; }
+    .device-chips { display: flex; flex-wrap: wrap; gap: 6px; padding-top: 6px; }
+    .chip { background: var(--s3); border: 1px solid var(--border); border-radius: 8px; padding: 5px 10px; font-size: 12px; display: inline-flex; align-items: center; gap: 6px; }
+    .dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    .dot.ok  { background: var(--green); } .dot.bad { background: var(--red); }
+    .empty { padding: 24px; text-align: center; color: var(--muted); font-size: 13px; }
     .tab { display: none; } .tab.active { display: block; }
-    .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
-    .dot.ok { background: var(--green); } .dot.bad { background: var(--red); }
+    .req-item { background: var(--s2); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; margin-bottom: 10px; }
+    .req-header { display: flex; align-items: flex-start; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; }
+    .req-type { font-size: 13px; font-weight: 700; }
+    .req-target { font-family: "SFMono-Regular", Consolas, monospace; font-size: 13px; color: var(--blue); }
+    .req-reason { font-size: 12px; color: var(--muted); margin-bottom: 10px; }
+    .req-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+    .req-code-result { margin-top: 10px; }
     @media (max-width: 820px) {
-      .app { grid-template-columns: 1fr; } aside { flex-direction: row; overflow-x: auto; }
-      aside .foot, .brand small { display: none; } .stats { grid-template-columns: repeat(2,1fr); }
-      main { padding: 20px; }
+      .shell { grid-template-columns: 1fr; } aside { position: relative; height: auto; }
+      nav { display: flex; flex-wrap: wrap; padding: 0 8px 8px; }
+      .nav-item { width: auto; } .sidebar-footer { display: none; }
+      .stats { grid-template-columns: repeat(2,1fr); } main { padding: 16px; }
     }
   </style>
 </head>
 <body>
-  <div class="app">
-    <aside>
-      <div class="brand">🛡️ Sinun <small id="conn">מתחבר…</small></div>
-      <button class="nav active" data-tab="dashboard">📊 סקירה</button>
-      <button class="nav" data-tab="clients">👥 לקוחות <span class="count" id="c-clients">0</span></button>
-      <button class="nav" data-tab="requests">📨 בקשות <span class="count" id="c-requests">0</span></button>
-      <button class="nav" data-tab="apps">🚫 אפליקציות חסומות</button>
-      <button class="nav" data-tab="logs">📜 לוג חסימות</button>
-      <div class="foot">מתעדכן אוטומטית כל 10 שניות</div>
-    </aside>
-
-    <main>
-      <!-- Dashboard -->
-      <section class="tab active" id="tab-dashboard">
-        <h1>סקירה כללית</h1>
-        <p class="sub">מצב המערכת בזמן אמת</p>
-        <div class="stats" id="stats"></div>
-        <div class="card">
-          <h2>חסימות אחרונות</h2>
-          <div id="recent-events"></div>
-        </div>
-      </section>
-
-      <!-- Clients -->
-      <section class="tab" id="tab-clients">
-        <h1>לקוחות</h1>
-        <p class="sub">כל לקוח מקבץ את המכשירים שלו. צור לקוח, הפק קוד, ומסור ללקוח.</p>
-        <div class="card">
-          <h2>לקוח חדש</h2>
-          <div class="row">
-            <input id="client-name" placeholder="שם הלקוח" />
-            <input id="client-phone" placeholder="טלפון (אופציונלי)" />
-            <button onclick="createClient()">➕ צור לקוח</button>
+<div class="shell">
+  <aside>
+    <div class="brand">
+      <div class="brand-title">🛡️ Sinun <span class="conn-dot off" id="connDot"></span></div>
+      <div class="brand-sub" id="connLabel">מתחבר…</div>
+    </div>
+    <nav>
+      <button class="nav-item active" data-tab="dashboard">📊 <span>סקירה</span></button>
+      <button class="nav-item" data-tab="clients">👥 <span>לקוחות</span> <span class="nav-badge" id="nb-clients">0</span></button>
+      <button class="nav-item" data-tab="requests">📨 <span>בקשות</span> <span class="nav-badge" id="nb-requests">0</span></button>
+      <button class="nav-item" data-tab="apps">🚫 <span>אפליקציות</span></button>
+      <button class="nav-item" data-tab="logs">📜 <span>לוגים</span></button>
+    </nav>
+    <div class="sidebar-footer">מתעדכן כל 10 שניות</div>
+  </aside>
+  <main>
+    <section class="tab active" id="tab-dashboard">
+      <div class="page-head"><h1>📊 סקירה כללית</h1><p>מצב המערכת בזמן אמת</p></div>
+      <div class="stats" id="stats"></div>
+      <div class="card">
+        <div class="card-head"><h2>⚡ חסימות אחרונות</h2><p>50 האחרונות</p></div>
+        <div id="recent-events"></div>
+      </div>
+    </section>
+    <section class="tab" id="tab-clients">
+      <div class="page-head"><h1>👥 לקוחות</h1><p>ניהול לקוחות, מכשירים וקודי הצטרפות.</p></div>
+      <div class="card">
+        <div class="card-head"><h2>לקוח חדש</h2></div>
+        <div class="card-body">
+          <div class="input-row">
+            <input id="client-name" placeholder="שם הלקוח" style="flex:1;min-width:160px" />
+            <input id="client-phone" placeholder="טלפון (אופציונלי)" style="min-width:140px" />
+            <button class="btn primary" onclick="createClient()">➕ צור לקוח</button>
           </div>
         </div>
-        <div id="clients-list"></div>
-      </section>
-
-      <!-- Requests -->
-      <section class="tab" id="tab-requests">
-        <h1>בקשות פתיחה</h1>
-        <p class="sub">אשר למכשיר בודד, אשר לכל הלקוחות, או דחה.</p>
-        <div class="card"><div id="requests-list"></div></div>
-      </section>
-
-      <!-- Blocked apps -->
-      <section class="tab" id="tab-apps">
-        <h1>אפליקציות חסומות</h1>
-        <p class="sub">אפליקציה ברשימה תיחסם בכל מכשיר — המשתמש יראה מסך חסימה עם אפשרות לבקשה.</p>
-        <div class="card">
-          <h2>חסום אפליקציה</h2>
-          <p class="hint">הזן package name, או בחר מהקיצורים.</p>
-          <div class="row" style="margin-bottom:12px">
-            <input id="app-pkg" placeholder="com.example.app" style="min-width:260px" />
-            <button onclick="blockApp()">🚫 חסום</button>
+      </div>
+      <div id="clients-list"></div>
+    </section>
+    <section class="tab" id="tab-requests">
+      <div class="page-head"><h1>📨 בקשות פתיחה</h1><p>בקשות ממתינות לאישור.</p></div>
+      <div id="requests-list"></div>
+    </section>
+    <section class="tab" id="tab-apps">
+      <div class="page-head"><h1>🚫 אפליקציות חסומות</h1><p>חסימה לפי Package Name בכל המכשירים.</p></div>
+      <div class="card">
+        <div class="card-head"><h2>חסום אפליקציה</h2></div>
+        <div class="card-body">
+          <div class="input-row" style="margin-bottom:12px">
+            <input id="app-pkg" placeholder="com.example.app" style="flex:1;min-width:220px" />
+            <button class="btn red" onclick="blockApp()">🚫 חסום</button>
           </div>
-          <div class="row" id="app-shortcuts"></div>
+          <div id="app-shortcuts" style="display:flex;flex-wrap:wrap;gap:6px;"></div>
         </div>
-        <div class="card">
-          <h2>חסומות כרגע</h2>
-          <div id="blocked-apps-list"></div>
-        </div>
-      </section>
+      </div>
+      <div class="card">
+        <div class="card-head"><h2>חסומות כרגע</h2></div>
+        <div class="card-body" id="blocked-apps-list"></div>
+      </div>
+    </section>
+    <section class="tab" id="tab-logs">
+      <div class="page-head"><h1>📜 לוג חסימות</h1><p>מטא-דאטה בלבד — ללא תוכן.</p></div>
+      <div class="card" id="logs-list"></div>
+    </section>
+  </main>
+</div>
+<script>
+  const api = (p, opts) => fetch(p, opts).then(r => { if (!r.ok) throw new Error(r.status); return r.status === 204 ? null : r.json(); });
+  const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  const fmt = t => t ? new Date(t).toLocaleString('he-IL', {dateStyle:'short',timeStyle:'short'}) : '—';
+  const postJSON = (p, b) => api(p, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(b)});
+  let DEFAULT_POLICY = 'basic_kosher_001';
+  const SHORTCUTS = { YouTube:'com.google.android.youtube', Chrome:'com.android.chrome', TikTok:'com.zhiliaoapp.musically', Instagram:'com.instagram.android', Facebook:'com.facebook.katana', WhatsApp:'com.whatsapp', Telegram:'org.telegram.messenger', Twitter:'com.twitter.android' };
 
-      <!-- Logs -->
-      <section class="tab" id="tab-logs">
-        <h1>לוג חסימות</h1>
-        <p class="sub">מטא-דאטה בלבד — דומיין, אפליקציה, סיבה. ללא תוכן.</p>
-        <div class="card"><div id="logs-list"></div></div>
-      </section>
-    </main>
-  </div>
+  document.querySelectorAll('.nav-item').forEach(b => { b.onclick = () => { document.querySelectorAll('.nav-item').forEach(x => x.classList.remove('active')); document.querySelectorAll('.tab').forEach(x => x.classList.remove('active')); b.classList.add('active'); document.getElementById('tab-' + b.dataset.tab).classList.add('active'); }; });
 
-  <script>
-    const api = (p, opts) => fetch(p, opts).then(r => {
-      if (!r.ok) throw new Error(r.status);
-      return r.status === 204 ? null : r.json();
-    });
-    const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-    const fmt = t => t ? new Date(t).toLocaleString('he-IL') : '—';
-    let DEFAULT_POLICY = 'basic_kosher_001';
-    const SHORTCUTS = {
-      'YouTube': 'com.google.android.youtube', 'Chrome': 'com.android.chrome',
-      'TikTok': 'com.zhiliaoapp.musically', 'Instagram': 'com.instagram.android',
-      'Facebook': 'com.facebook.katana', 'WhatsApp': 'com.whatsapp',
-    };
+  async function loadStats() {
+    const s = await api('/api/stats');
+    document.getElementById('stats').innerHTML = `
+      <div class="stat"><div class="stat-label">מכשירים רשומים</div><div class="stat-value blue">${s.devices}</div></div>
+      <div class="stat"><div class="stat-label">לא מוגנים</div><div class="stat-value ${s.unprotected?'red':'green'}">${s.unprotected}</div></div>
+      <div class="stat"><div class="stat-label">בקשות ממתינות</div><div class="stat-value ${s.pending_requests?'amber':''}">${s.pending_requests}</div></div>
+      <div class="stat"><div class="stat-label">חסימות היום</div><div class="stat-value">${s.blocks_today}</div></div>`;
+    document.getElementById('nb-requests').textContent = s.pending_requests;
+  }
 
-    // Tabs
-    document.querySelectorAll('.nav').forEach(b => b.onclick = () => {
-      document.querySelectorAll('.nav').forEach(x => x.classList.remove('active'));
-      document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
-      b.classList.add('active');
-      document.getElementById('tab-' + b.dataset.tab).classList.add('active');
-    });
+  function eventsTable(events, targetId) {
+    const el = document.getElementById(targetId);
+    if (!events.length) { el.innerHTML = '<div class="empty">אין אירועים.</div>'; return; }
+    el.innerHTML = `<table><thead><tr><th>זמן</th><th>מכשיר</th><th>דומיין</th><th>אפליקציה</th><th>סיבה</th></tr></thead><tbody>${events.map(x => { const d = x.details||{}; return `<tr><td class="mono" style="white-space:nowrap">${fmt(x.created_at)}</td><td>${esc(x.device_name)}</td><td class="mono">${esc(d.domain||'—')}</td><td class="mono">${esc(d.package||'—')}</td><td><span class="badge ${d.reason==='default_deny'?'warn':'bad'}">${esc(d.reason||'—')}</span></td></tr>`; }).join('')}</tbody></table>`;
+  }
+  async function loadEvents(targetId) { const e = await api('/api/events?event_type=block&limit=50'); eventsTable(e, targetId); }
 
-    async function loadStats() {
-      const s = await api('/api/stats');
-      document.getElementById('stats').innerHTML = `
-        <div class="stat"><div class="n">${s.devices}</div><div class="l">מכשירים</div></div>
-        <div class="stat ${s.unprotected?'bad':''}"><div class="n">${s.unprotected}</div><div class="l">לא מוגנים</div></div>
-        <div class="stat ${s.pending_requests?'warn':''}"><div class="n">${s.pending_requests}</div><div class="l">בקשות ממתינות</div></div>
-        <div class="stat"><div class="n">${s.blocks_today}</div><div class="l">חסימות היום</div></div>`;
-      document.getElementById('c-requests').textContent = s.pending_requests;
-    }
+  async function loadClients() {
+    const clients = await api('/api/clients');
+    document.getElementById('nb-clients').textContent = clients.length;
+    const el = document.getElementById('clients-list');
+    if (!clients.length) { el.innerHTML = '<div class="empty">אין לקוחות עדיין.</div>'; return; }
+    el.innerHTML = clients.map(c => {
+      const devHtml = (c.devices||[]).map(d => { const ok = d.protection_status === 'protected'; return `<span class="chip"><span class="dot ${ok?'ok':'bad'}"></span><span>${esc(d.device_name)}</span><span class="mono" style="color:var(--muted)">${fmt(d.last_seen)}</span></span>`; }).join('') || '<span style="color:var(--muted);font-size:12px">אין מכשירים</span>';
+      return `<div class="device-row"><div class="device-head"><div><div class="device-name">${esc(c.name)}</div><div class="device-meta">${esc(c.phone||'')} · ${(c.devices||[]).length} מכשירים</div></div><div style="margin-inline-start:auto"><button class="btn ghost sm" onclick="genCode('${c.id}','${esc(c.name)}')">🔑 קוד הצטרפות</button></div></div><div class="device-body"><div id="code-${c.id}"></div><div class="device-chips">${devHtml}</div></div></div>`;
+    }).join('');
+  }
 
-    async function loadClients() {
-      const clients = await api('/api/clients');
-      document.getElementById('c-clients').textContent = clients.length;
-      const el = document.getElementById('clients-list');
-      if (!clients.length) { el.innerHTML = '<div class="empty">אין לקוחות עדיין — צור לקוח ראשון למעלה.</div>'; return; }
-      el.innerHTML = clients.map(c => {
-        const devices = (c.devices || []).map(d => {
-          const ok = d.protection_status === 'protected';
-          return `<span class="chip"><span class="dot ${ok?'ok':'bad'}"></span>${esc(d.device_name)}
-            <span class="mono" style="color:var(--muted)">· ${fmt(d.last_seen)}</span></span>`;
-        }).join(' ') || '<span class="empty" style="padding:6px">אין מכשירים מחוברים</span>';
-        return `<div class="client">
-          <div class="client-head">
-            <div><div class="name">${esc(c.name)}</div>
-              <div class="meta">${esc(c.phone||'')} · ${(c.devices||[]).length} מכשירים</div></div>
-            <div class="spacer"></div>
-            <button class="sm" onclick="genClientCode('${c.id}','${esc(c.name)}')">🔑 קוד הצטרפות</button>
-          </div>
-          <div class="client-body">
-            <div id="code-${c.id}"></div>
-            ${devices}
-          </div>
-        </div>`;
-      }).join('');
-    }
+  async function createClient() {
+    const name = document.getElementById('client-name').value.trim(); if (!name) return;
+    const phone = document.getElementById('client-phone').value.trim();
+    await postJSON('/api/clients', { name, phone: phone||null });
+    document.getElementById('client-name').value = ''; document.getElementById('client-phone').value = '';
+    loadClients();
+  }
 
-    async function createClient() {
-      const name = document.getElementById('client-name').value.trim();
-      if (!name) return;
-      const phone = document.getElementById('client-phone').value.trim();
-      await api('/api/clients', { method:'POST', headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({ name, phone: phone||null }) });
-      document.getElementById('client-name').value = '';
-      document.getElementById('client-phone').value = '';
-      loadClients();
-    }
+  async function genCode(id, name) {
+    const box = document.getElementById('code-' + id); box.innerHTML = '<span style="color:var(--muted);font-size:12px">יוצר קוד…</span>';
+    try { const c = await postJSON(`/api/clients/${id}/enrollment-code`, {}); box.innerHTML = `<div style="display:flex;align-items:center;gap:12px;margin:8px 0;flex-wrap:wrap"><span class="code-box">${esc(c.code)}</span><span style="color:var(--muted);font-size:12px">מסור ל-${esc(name)} · תקף 72 שעות · חד-פעמי</span></div>`; }
+    catch (e) { box.innerHTML = `<span style="color:var(--red);font-size:12px">שגיאה: ${e.message}</span>`; }
+  }
 
-    async function genClientCode(id, name) {
-      const box = document.getElementById('code-' + id);
-      box.innerHTML = 'יוצר…';
-      const c = await api(`/api/clients/${id}/enrollment-code`, { method:'POST' });
-      box.innerHTML = `<div class="row" style="margin:8px 0">
-        <span class="code-box">${esc(c.code)}</span>
-        <span class="hint">מסור ל-${esc(name)} · תקף 72 שעות · חד-פעמי</span></div>`;
-    }
+  async function loadRequests() {
+    const r = await api('/api/requests?status=pending');
+    const el = document.getElementById('requests-list');
+    if (!r.length) { el.innerHTML = '<div class="card card-body" style="padding:24px"><div class="empty" style="padding:0">אין בקשות ממתינות ✅</div></div>'; return; }
+    el.innerHTML = r.map(x => {
+      const isRemoval = x.request_type === 'removal';
+      const typeBadge = x.request_type === 'removal' ? '<span class="badge bad">הסרה</span>' : x.request_type === 'domain' ? '<span class="badge info">אתר</span>' : '<span class="badge warn">אפליקציה</span>';
+      const typeLabel = x.request_type === 'domain' ? '🌐 אתר' : x.request_type === 'app' ? '📱 אפליקציה' : '🗑️ הסרת סינון';
+      const actions = isRemoval
+        ? `<button class="btn red sm" onclick="genUninstallCode('${x.device_id}','${x.id}')">🔑 צור קוד הסרה</button><button class="btn ghost sm" onclick="rejectReq('${x.id}')">✗ דחה</button>`
+        : `<button class="btn green sm" onclick="approveReq('${x.id}','device')">✓ אשר למכשיר</button><button class="btn ghost sm" onclick="approveReq('${x.id}','global')">🌍 לכולם</button><button class="btn ghost sm" onclick="rejectReq('${x.id}')">✗ דחה</button>`;
+      return `<div class="req-item"><div class="req-header">${typeBadge}<span class="req-type">${typeLabel}</span><span class="req-target">${esc(x.target)}</span><span style="margin-inline-start:auto;color:var(--muted);font-size:11px">${fmt(x.created_at)}</span></div>${x.reason?`<div class="req-reason">💬 ${esc(x.reason)}</div>`:''}<div class="req-actions" id="req-actions-${x.id}">${actions}</div><div class="req-code-result" id="req-code-${x.id}"></div></div>`;
+    }).join('');
+  }
+  async function approveReq(id, scope) { await postJSON(`/api/requests/${id}/approve`, {scope}); refresh(); }
+  async function rejectReq(id) { await postJSON(`/api/requests/${id}/reject`, {}); refresh(); }
+  async function genUninstallCode(deviceId, reqId) {
+    const actEl = document.getElementById('req-actions-'+reqId); const resEl = document.getElementById('req-code-'+reqId);
+    if (actEl) actEl.innerHTML = '<span style="color:var(--muted);font-size:12px">מייצר קוד…</span>';
+    try {
+      const res = await postJSON(`/api/devices/${deviceId}/uninstall-code`, {});
+      if (actEl) actEl.innerHTML = '';
+      if (resEl) resEl.innerHTML = `<div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-top:6px"><span class="code-box" style="font-size:22px">${esc(res.code)}</span><div><div style="font-size:12px;font-weight:700">קוד הסרה חד-פעמי</div><div style="font-size:11px;color:var(--muted)">תקף ${res.expires_minutes} דקות · מסור ללקוח</div></div><button class="btn ghost sm" onclick="rejectReq('${reqId}')">סגור בקשה</button></div>`;
+    } catch(e) { if (actEl) actEl.innerHTML = `<span style="color:var(--red);font-size:12px">שגיאה: ${e.message}</span>`; }
+  }
 
-    async function loadRequests() {
-      const r = await api('/api/requests?status=pending');
-      const el = document.getElementById('requests-list');
-      if (!r.length) { el.innerHTML = '<div class="empty">אין בקשות ממתינות.</div>'; return; }
-      el.innerHTML = `<table><thead><tr><th>סוג</th><th>יעד</th><th>סיבה</th><th>מכשיר</th><th>פעולות</th></tr></thead><tbody>${
-        r.map(x => `<tr>
-          <td>${x.request_type==='domain'?'🌐 אתר':'📱 אפליקציה'}</td>
-          <td class="mono">${esc(x.target)}</td><td>${esc(x.reason||'—')}</td>
-          <td class="mono">${esc((x.device_id||'').slice(0,8))}</td>
-          <td class="row">
-            <button class="green sm" onclick="approve('${x.id}','device')">אשר למכשיר</button>
-            <button class="ghost sm" onclick="approve('${x.id}','global')">אשר לכולם</button>
-            <button class="red sm" onclick="reject('${x.id}')">דחה</button>
-          </td></tr>`).join('')}</tbody></table>`;
-    }
-    async function approve(id, scope) {
-      await api(`/api/requests/${id}/approve`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({scope}) });
-      refresh();
-    }
-    async function reject(id) {
-      await api(`/api/requests/${id}/reject`, { method:'POST', headers:{'Content-Type':'application/json'}, body:'{}' });
-      refresh();
-    }
+  function renderShortcuts() { document.getElementById('app-shortcuts').innerHTML = Object.entries(SHORTCUTS).map(([n,p]) => `<button class="btn ghost sm" onclick="blockApp('${p}')">${esc(n)}</button>`).join(''); }
+  async function blockApp(pkg) { pkg = pkg || document.getElementById('app-pkg').value.trim(); if (!pkg) return; await postJSON(`/api/policies/${DEFAULT_POLICY}/blocked-apps`, {package_name:pkg}); document.getElementById('app-pkg').value=''; loadBlockedApps(); }
+  async function unblockApp(pkg) { await api(`/api/policies/${DEFAULT_POLICY}/blocked-apps/${encodeURIComponent(pkg)}`, {method:'DELETE'}); loadBlockedApps(); }
+  async function loadBlockedApps() { const apps = await api(`/api/policies/${DEFAULT_POLICY}/blocked-apps`); const el = document.getElementById('blocked-apps-list'); if (!apps.length) { el.innerHTML = '<div class="empty">אין אפליקציות חסומות.</div>'; return; } el.innerHTML = `<div style="display:flex;flex-wrap:wrap;gap:8px">${apps.map(p => `<div class="chip"><span class="mono">${esc(p)}</span><button class="btn red sm" onclick="unblockApp('${esc(p)}')" style="padding:3px 7px">✕</button></div>`).join('')}</div>`; }
+  async function loadDefaultPolicy() { try { const p = await api('/api/policies'); if (p.length) DEFAULT_POLICY = p[0].id; } catch(e){} }
 
-    function renderShortcuts() {
-      document.getElementById('app-shortcuts').innerHTML = Object.entries(SHORTCUTS)
-        .map(([n,p]) => `<button class="ghost sm" onclick="blockApp('${p}')">${esc(n)}</button>`).join('');
-    }
-    async function blockApp(pkg) {
-      pkg = pkg || document.getElementById('app-pkg').value.trim();
-      if (!pkg) return;
-      await api(`/api/policies/${DEFAULT_POLICY}/blocked-apps`, { method:'POST',
-        headers:{'Content-Type':'application/json'}, body: JSON.stringify({package_name:pkg}) });
-      document.getElementById('app-pkg').value = '';
-      loadBlockedApps();
-    }
-    async function unblockApp(pkg) {
-      await api(`/api/policies/${DEFAULT_POLICY}/blocked-apps/${encodeURIComponent(pkg)}`, { method:'DELETE' });
-      loadBlockedApps();
-    }
-    async function loadBlockedApps() {
-      const apps = await api(`/api/policies/${DEFAULT_POLICY}/blocked-apps`);
-      const el = document.getElementById('blocked-apps-list');
-      if (!apps.length) { el.innerHTML = '<div class="empty">אין אפליקציות חסומות.</div>'; return; }
-      el.innerHTML = apps.map(p => `<div class="chip" style="margin-inline-end:8px">
-        <span class="mono">${esc(p)}</span>
-        <button class="red sm" onclick="unblockApp('${esc(p)}')">הסר</button></div>`).join(' ');
-    }
+  async function refresh() {
+    try { await Promise.all([loadStats(), loadClients(), loadRequests(), loadBlockedApps(), loadEvents('logs-list'), loadEvents('recent-events')]); document.getElementById('connDot').classList.remove('off'); document.getElementById('connLabel').textContent = 'מחובר'; }
+    catch(e) { document.getElementById('connDot').classList.add('off'); document.getElementById('connLabel').textContent = 'שגיאת חיבור'; }
+  }
 
-    async function loadEvents(targetId) {
-      const e = await api('/api/events?event_type=block&limit=50');
-      const el = document.getElementById(targetId);
-      if (!e.length) { el.innerHTML = '<div class="empty">אין אירועי חסימה עדיין.</div>'; return; }
-      el.innerHTML = `<table><thead><tr><th>זמן</th><th>מכשיר</th><th>דומיין</th><th>אפליקציה</th><th>סיבה</th></tr></thead><tbody>${
-        e.map(x => { const d = x.details||{}; return `<tr>
-          <td>${fmt(x.created_at)}</td><td>${esc(x.device_name)}</td>
-          <td class="mono">${esc(d.domain||'—')}</td><td class="mono">${esc(d.package||'—')}</td>
-          <td>${esc(d.reason||'—')}</td></tr>`; }).join('')}</tbody></table>`;
-    }
-
-    async function loadDefaultPolicy() {
-      try { const p = await api('/api/policies'); if (p.length) DEFAULT_POLICY = p[0].id; } catch (e) {}
-    }
-
-    async function refresh() {
-      try {
-        await Promise.all([loadStats(), loadClients(), loadRequests(), loadBlockedApps(),
-          loadEvents('logs-list'), loadEvents('recent-events')]);
-        document.getElementById('conn').textContent = 'מחובר';
-      } catch (e) { document.getElementById('conn').textContent = 'שגיאת חיבור'; }
-    }
-
-    renderShortcuts();
-    loadDefaultPolicy().then(refresh);
-    setInterval(refresh, 10000);
-  </script>
+  renderShortcuts(); loadDefaultPolicy().then(refresh); setInterval(refresh, 10000);
+</script>
 </body>
 </html>

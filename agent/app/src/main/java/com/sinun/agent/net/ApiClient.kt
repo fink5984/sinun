@@ -68,6 +68,25 @@ class ApiClient(private val baseUrl: String = BuildConfig.API_BASE_URL) {
             post("/api/requests", body)
         }
 
+    /** מבקש הסרת אפליקציית הסינון — שולח בקשת removal לשרת. */
+    suspend fun requestRemoval(deviceId: String, reason: String) =
+        withContext(Dispatchers.IO) {
+            val body = JSONObject()
+                .put("device_id", deviceId)
+                .put("request_type", "removal")
+                .put("target", "sinun_agent")
+                .put("reason", reason)
+            post("/api/requests", body)
+        }
+
+    /** מאמת קוד הסרה חד-פעמי מול השרת. זורק ApiException אם לא תקין. */
+    suspend fun verifyUninstallCode(deviceId: String, code: String): Boolean =
+        withContext(Dispatchers.IO) {
+            val body = JSONObject().put("code", code.trim())
+            val res = post("/api/devices/$deviceId/verify-uninstall", body)
+            res.optBoolean("authorized", false)
+        }
+
     private fun post(path: String, body: JSONObject): JSONObject {
         val request = Request.Builder()
             .url(baseUrl + path)

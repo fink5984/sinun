@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>גישה חסומה</title>
+  <style>
+    :root {
+      --bg: #0d1117;
+      --surface: #161b22;
+      --surface2: #1c2128;
+      --border: #30363d;
+      --text: #e6edf3;
+      --muted: #8b949e;
+      --red: #f85149;
+      --green: #3fb950;
+      --blue: #58a6ff;
+      --amber: #f0883e;
+      --radius: 14px;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+    html, body { height: 100%; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100%;
+      padding: 20px;
+    }
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 32px 24px 24px;
+      max-width: 440px;
+      width: 100%;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+      animation: slideUp 0.3s ease;
+    }
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .shield-wrap {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 72px;
+      height: 72px;
+      background: rgba(248,81,73,0.12);
+      border-radius: 50%;
+      margin: 0 auto 20px;
+    }
+    .shield-icon { font-size: 36px; line-height: 1; }
+    .title {
+      font-size: 24px;
+      font-weight: 800;
+      color: var(--red);
+      text-align: center;
+      margin-bottom: 8px;
+    }
+    .domain {
+      text-align: center;
+      font-family: 'SFMono-Regular', Consolas, 'Courier New', monospace;
+      font-size: 15px;
+      color: var(--muted);
+      margin-bottom: 14px;
+      word-break: break-all;
+    }
+    .badge {
+      display: inline-block;
+      background: rgba(248,81,73,0.14);
+      border: 1px solid rgba(248,81,73,0.3);
+      color: var(--red);
+      padding: 3px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 700;
+      margin-bottom: 20px;
+    }
+    .badge-wrap { text-align: center; }
+    .desc {
+      font-size: 14px;
+      color: var(--muted);
+      text-align: center;
+      line-height: 1.65;
+      margin-bottom: 24px;
+    }
+    .divider { height: 1px; background: var(--border); margin: 0 0 20px; }
+    .btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      width: 100%;
+      padding: 14px 20px;
+      border-radius: 10px;
+      font-size: 15px;
+      font-weight: 700;
+      border: none;
+      cursor: pointer;
+      margin-bottom: 10px;
+      font-family: inherit;
+      transition: filter 0.15s, transform 0.1s;
+      -webkit-appearance: none;
+    }
+    .btn:active { filter: brightness(0.85); transform: scale(0.98); }
+    .btn-primary { background: var(--blue); color: #fff; }
+    .btn-ghost { background: transparent; border: 1px solid var(--border); color: var(--muted); }
+    .btn-send { background: var(--green); color: #fff; margin-top: 10px; }
+    .form-section { display: none; }
+    .form-section.visible { display: block; }
+    .form-label {
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 8px;
+      text-align: right;
+    }
+    textarea {
+      width: 100%;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 12px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-family: inherit;
+      resize: vertical;
+      min-height: 80px;
+      direction: rtl;
+      outline: none;
+    }
+    textarea:focus { border-color: var(--blue); }
+    .success {
+      display: none;
+      text-align: center;
+      color: var(--green);
+      font-size: 14px;
+      font-weight: 600;
+      padding: 12px;
+      background: rgba(63,185,80,0.1);
+      border-radius: 8px;
+      margin-top: 10px;
+    }
+    .success.visible { display: block; }
+    .footer {
+      text-align: center;
+      font-size: 11px;
+      color: #444d56;
+      margin-top: 16px;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="shield-wrap"><div class="shield-icon">🛡️</div></div>
+    <div class="title" id="titleEl">גישה חסומה</div>
+    <div class="domain" id="domainEl">—</div>
+    <div class="badge-wrap"><span class="badge" id="badgeEl">מדיניות סינון</span></div>
+    <p class="desc">גישה לאתר/אפליקציה זו חסומה על-ידי מנהל המערכת.<br>אפשר לשלוח בקשת פתיחה למנהל.</p>
+    <div class="divider"></div>
+
+    <button class="btn btn-primary" onclick="showForm()" id="btnRequest">
+      <span>📨</span><span>בקש פתיחה</span>
+    </button>
+    <button class="btn btn-ghost" onclick="goHome()">
+      <span>🏠</span><span>מסך ראשי</span>
+    </button>
+
+    <div class="form-section" id="formSection">
+      <div class="divider" style="margin-top:10px"></div>
+      <div class="form-label">סיבת הבקשה (אופציונלי):</div>
+      <textarea id="reasonEl" placeholder="למה אתה צריך גישה?"></textarea>
+      <button class="btn btn-send" onclick="sendRequest()">
+        <span>✉️</span><span>שלח למנהל</span>
+      </button>
+      <div class="success" id="successEl">✅ הבקשה נשלחה! המנהל יחזור אליך בהקדם.</div>
+    </div>
+    <div class="footer">Sinun Filter · הגנה על פרטיות ותוכן</div>
+  </div>
+
+  <script>
+    var _type = "domain", _target = "";
+
+    /* נקרא מהאפליקציה אחרי טעינת הדף */
+    function init(type, target, title) {
+      _type = type || "domain";
+      _target = target || "";
+      document.getElementById("titleEl").textContent = title || "גישה חסומה";
+      document.getElementById("domainEl").textContent = target || "—";
+      document.getElementById("badgeEl").textContent =
+        type === "app" ? "📱 אפליקציה חסומה" : "🌐 אתר חסום";
+    }
+
+    function showForm() {
+      var f = document.getElementById("formSection");
+      f.classList.add("visible");
+      document.getElementById("btnRequest").style.display = "none";
+      document.getElementById("reasonEl").focus();
+    }
+
+    function goHome() {
+      if (window.SinunBridge) window.SinunBridge.goHome();
+    }
+
+    function sendRequest() {
+      var reason = document.getElementById("reasonEl").value.trim();
+      if (window.SinunBridge) {
+        window.SinunBridge.requestOpening(_type, _target, reason || "ללא סיבה");
+      }
+      document.getElementById("successEl").classList.add("visible");
+      document.querySelector(".btn-send").disabled = true;
+    }
+  </script>
+</body>
+</html>

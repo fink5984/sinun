@@ -36,5 +36,14 @@ class SinunDeviceAdminReceiver : DeviceAdminReceiver() {
                     "הפעלת ההגנה מונעת הסרה לא מורשית של אפליקציית הסינון.",
                 )
             }
+
+        /**
+         * מבטל את הרשאת Device Admin — נקרא לאחר אימות קוד הסרה תקין מהמנהל.
+         * ביטול ה-Admin הוא תנאי מקדים להסרת האפליקציה.
+         */
+        fun deactivate(context: Context) {
+            val dpm = context.getSystemService(DevicePolicyManager::class.java)
+            dpm.removeActiveAdmin(component(context))
+        }
     }
 }

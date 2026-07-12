@@ -24,4 +24,18 @@
     <string name="perm_overlay_missing">② אשר הצגה מעל אפליקציות</string>
     <string name="perm_admin">✔ הגנה מפני הסרה פעילה</string>
     <string name="perm_admin_missing">③ הפעל הגנה מפני הסרה</string>
+    <!-- הסרת הסינון -->
+    <string name="btn_request_removal">בקש הסרת הסינון</string>
+    <string name="btn_enter_removal_code">הזן קוד הסרה</string>
+    <string name="removal_request_title">בקשת הסרת הסינון</string>
+    <string name="removal_request_message">הבקשה תועבר למנהל. לאחר אישורו תקבל קוד 6 ספרות. שלח סיבה (אופציונלי):</string>
+    <string name="removal_request_hint">סיבת הבקשה (אופציונלי)</string>
+    <string name="removal_request_sent">הבקשה נשלחה — המתן לקוד מהמנהל</string>
+    <string name="removal_request_failed">שליחת הבקשה נכשלה: %1$s</string>
+    <string name="removal_code_title">קוד הסרה</string>
+    <string name="removal_code_message">הזן את הקוד בן 6 הספרות שקיבלת מהמנהל:</string>
+    <string name="removal_code_hint">123456</string>
+    <string name="removal_code_confirm">אמת וסלק הגנה</string>
+    <string name="removal_code_invalid">קוד שגוי, פג תוקף, או לא הונפק. נסה שוב.</string>
+    <string name="removal_deactivating">מבטל הגנה…</string>
 </resources>

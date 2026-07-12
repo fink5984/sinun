@@ -61,6 +61,9 @@ class Device(Base):
     last_seen: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     protection_status: Mapped[str] = mapped_column(String(20), default="unknown")  # protected / unprotected / unknown
     policy_id: Mapped[str | None] = mapped_column(ForeignKey("policies.id"))
+    # קוד חד-פעמי להסרת אפליקציית הסינון (מאוחסן כ-SHA-256)
+    uninstall_code_hash: Mapped[str | None] = mapped_column(String(64))
+    uninstall_code_expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
     user: Mapped[User | None] = relationship(back_populates="devices")
     policy: Mapped["Policy | None"] = relationship()

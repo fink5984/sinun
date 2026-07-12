@@ -141,10 +141,21 @@ class FilterVpnService : VpnService(), FilterEventSink {
         if (event.verdict != PolicyEngine.Verdict.BLOCK) return
         if (!shouldReport(event.domain)) return  // דדופ: פעם בדקה לכל דומיין
 
-        // מסך חסימה לאתר — רק אם האפליקציה שביקשה היא זו שבחזית (גלישה יזומה),
-        // אחרת היינו מקפיצים מסך על כל בקשת רקע (טלמטריה, פרסומות...).
+        // מסך חסימה לאתר — מוצג כשנראה שמדובר בגלישה יזומה (לא תעבורת רקע).
+        // לוגיקת החלטה:
+        //  - fg ו-pkg ידועים ושווים → ודאי גלישה יזומה (המקרה האידיאלי).
+        //  - pkg ידוע אך fg לא (אין Usage Access) → מציגים, כי אין לנו מידע טוב יותר.
+        //  - fg ידוע אך pkg לא (Attributor נכשל) → מציגים, כי יש אפליקציה בחזית.
+        //  - שניהם לא ידועים → לא מציגים (אי-אפשר להבדיל מתעבורת רקע).
         val pkg = event.packageName
-        if (pkg != null && pkg == appMonitor?.foregroundPackage) {
+        val fg = appMonitor?.foregroundPackage
+        val likelyForeground = when {
+            pkg != null && fg != null -> pkg == fg   // שניהם ידועים: חייבים להתאים
+            pkg != null && fg == null -> true         // אין Usage Access: מציגים בכל מקרה
+            pkg == null && fg != null -> true         // Attributor נכשל: יש fg → מציגים
+            else -> false                             // שניהם null: אין מידע — דלג
+        }
+        if (likelyForeground) {
             blockOverlay?.show(BlockOverlay.Kind.DOMAIN, "האתר חסום", event.domain) {
                 sendOpeningRequest("domain", event.domain)
             }
