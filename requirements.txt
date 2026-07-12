@@ -1,0 +1,3 @@
+# השרת נמצא ב-backend/. הקובץ הזה גורם ל-Railpack/Railway לזהות Python
+# ולבנות את השרת גם כשמפרסים משורש ה-repo (בלי לשנות Root Directory בדשבורד).
+-r backend/requirements.txt
