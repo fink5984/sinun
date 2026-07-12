@@ -56,4 +56,8 @@ dependencies {
 
     // HTTP (JSON דרך org.json המובנה — מספיק לשלד)
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
+
+    // בדיקות יחידה על ליבת המנוע (JVM, ללא אמולטור)
+    testImplementation("junit:junit:4.13.2")
+    testImplementation("org.json:json:20240303")
 }
