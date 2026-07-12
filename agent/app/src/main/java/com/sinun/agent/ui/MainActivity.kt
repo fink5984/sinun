@@ -4,10 +4,13 @@ import android.app.Activity
 import android.content.Intent
 import android.net.VpnService
 import android.os.Bundle
+import android.text.InputType
 import android.widget.Button
+import android.widget.EditText
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.sinun.agent.BuildConfig
@@ -46,7 +49,7 @@ class MainActivity : AppCompatActivity() {
         findViewById<Button>(R.id.btn_request_opening).setOnClickListener { sendDemoOpeningRequest() }
 
         HeartbeatWorker.schedule(this)
-        registerAndLoadPolicy()
+        if (repo.isEnrolled) loadPolicy() else promptForEnrollmentCode()
     }
 
     override fun onResume() {
@@ -54,10 +57,40 @@ class MainActivity : AppCompatActivity() {
         renderStatus()
     }
 
-    private fun registerAndLoadPolicy() {
+    /** מסך ההצטרפות: הלקוח מזין את הקוד החד-פעמי שקיבל מהמנהל. */
+    private fun promptForEnrollmentCode() {
+        val input = EditText(this).apply {
+            hint = getString(R.string.enroll_code_hint)
+            inputType = InputType.TYPE_TEXT_FLAG_CAP_CHARACTERS
+        }
+        AlertDialog.Builder(this)
+            .setTitle(R.string.enroll_title)
+            .setMessage(R.string.enroll_message)
+            .setView(input)
+            .setCancelable(false)
+            .setPositiveButton(R.string.enroll_confirm) { _, _ -> enroll(input.text.toString()) }
+            .show()
+    }
+
+    private fun enroll(code: String) {
+        if (code.isBlank()) {
+            promptForEnrollmentCode()
+            return
+        }
         lifecycleScope.launch {
             try {
-                repo.ensureRegistered(BuildConfig.VERSION_NAME)
+                repo.enroll(code, BuildConfig.VERSION_NAME)
+                loadPolicy()
+            } catch (e: Exception) {
+                Toast.makeText(this@MainActivity, getString(R.string.enroll_failed, e.message), Toast.LENGTH_LONG).show()
+                promptForEnrollmentCode()
+            }
+        }
+    }
+
+    private fun loadPolicy() {
+        lifecycleScope.launch {
+            try {
                 renderPolicy(repo.refreshPolicy())
             } catch (e: Exception) {
                 statusText.text = getString(R.string.status_error, e.message)

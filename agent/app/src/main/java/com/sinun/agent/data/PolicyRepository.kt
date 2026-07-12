@@ -23,10 +23,12 @@ class PolicyRepository(context: Context) {
         get() = prefs.getString("device_id", null)
         private set(value) = prefs.edit { putString("device_id", value) }
 
-    /** רישום חד-פעמי של המכשיר מול השרת. */
-    suspend fun ensureRegistered(agentVersion: String): String {
+    val isEnrolled: Boolean get() = deviceId != null
+
+    /** הצטרפות עם הקוד החד-פעמי שהמנהל מסר ללקוח. */
+    suspend fun enroll(code: String, agentVersion: String): String {
         deviceId?.let { return it }
-        val id = api.registerDevice(agentVersion)
+        val id = api.enrollDevice(code, agentVersion)
         deviceId = id
         return id
     }

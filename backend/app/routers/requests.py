@@ -41,21 +41,26 @@ def approve_request(request_id: str, payload: schemas.RequestDecision, db: Sessi
     req.admin_note = payload.admin_note
     req.approved_minutes = payload.approved_minutes
 
-    # אישור = הוספת rule ל-policy של המכשיר (זמני אם הוגדרו דקות)
+    # אישור = הוספת rule allow (זמני אם הוגדרו דקות).
+    # scope="global" → כלל ב-policy הגלובלי (כל המשתמשים). אחרת → override פר-מכשיר בלבד.
     device = db.get(models.Device, req.device_id)
-    if device is not None and device.policy_id is not None:
+    if device is not None:
         expires = None
         if payload.approved_minutes:
             expires = datetime.now(timezone.utc) + timedelta(minutes=payload.approved_minutes)
         rule_type = models.RuleType.domain if req.request_type == "domain" else models.RuleType.package
-        db.add(models.PolicyRule(
-            policy_id=device.policy_id,
+        rule = models.PolicyRule(
             rule_type=rule_type,
             value=req.target,
             action=models.RuleAction.allow,
             priority=10,  # אישורים ידניים גוברים על כללים כלליים
             expires_at=expires,
-        ))
+        )
+        if payload.scope == "global" and device.policy_id is not None:
+            rule.policy_id = device.policy_id
+        else:
+            rule.device_id = device.id
+        db.add(rule)
 
     db.commit()
     db.refresh(req)

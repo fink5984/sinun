@@ -21,16 +21,23 @@ class ApiClient(private val baseUrl: String = BuildConfig.API_BASE_URL) {
 
     private val json = "application/json; charset=utf-8".toMediaType()
 
-    /** רישום המכשיר; מחזיר device_id שנשמר מקומית. */
-    suspend fun registerDevice(agentVersion: String): String = withContext(Dispatchers.IO) {
-        val body = JSONObject()
-            .put("device_name", "${Build.MANUFACTURER} ${Build.MODEL}")
-            .put("android_version", Build.VERSION.RELEASE)
-            .put("manufacturer", Build.MANUFACTURER)
-            .put("model", Build.MODEL)
-            .put("agent_version", agentVersion)
-        post("/api/devices/register", body).getString("id")
+    /** הצטרפות עם קוד חד-פעמי שהמנהל מסר ללקוח; מחזיר device_id. */
+    suspend fun enrollDevice(code: String, agentVersion: String): String = withContext(Dispatchers.IO) {
+        val body = deviceInfo(agentVersion).put("code", code.trim().uppercase())
+        post("/api/devices/enroll", body).getString("id")
     }
+
+    /** רישום ישיר ללא קוד — לפיתוח/בדיקות בלבד. */
+    suspend fun registerDevice(agentVersion: String): String = withContext(Dispatchers.IO) {
+        post("/api/devices/register", deviceInfo(agentVersion)).getString("id")
+    }
+
+    private fun deviceInfo(agentVersion: String) = JSONObject()
+        .put("device_name", "${Build.MANUFACTURER} ${Build.MODEL}")
+        .put("android_version", Build.VERSION.RELEASE)
+        .put("manufacturer", Build.MANUFACTURER)
+        .put("model", Build.MODEL)
+        .put("agent_version", agentVersion)
 
     suspend fun heartbeat(deviceId: String, protectionStatus: String) = withContext(Dispatchers.IO) {
         val body = JSONObject()

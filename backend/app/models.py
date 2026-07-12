@@ -64,6 +64,11 @@ class Device(Base):
 
     user: Mapped[User | None] = relationship(back_populates="devices")
     policy: Mapped["Policy | None"] = relationship()
+    # כללי override פר-מכשיר (פתיחה "ברמת המשתמש") — גוברים על ה-policy הגלובלי
+    override_rules: Mapped[list["PolicyRule"]] = relationship(
+        primaryjoin="Device.id == PolicyRule.device_id",
+        cascade="all, delete-orphan",
+    )
 
 
 class Policy(Base):
@@ -75,14 +80,20 @@ class Policy(Base):
     default_action: Mapped[RuleAction] = mapped_column(Enum(RuleAction), default=RuleAction.block)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)
 
-    rules: Mapped[list["PolicyRule"]] = relationship(back_populates="policy", cascade="all, delete-orphan")
+    rules: Mapped[list["PolicyRule"]] = relationship(
+        back_populates="policy",
+        cascade="all, delete-orphan",
+        primaryjoin="Policy.id == PolicyRule.policy_id",
+    )
 
 
 class PolicyRule(Base):
     __tablename__ = "policy_rules"
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
-    policy_id: Mapped[str] = mapped_column(ForeignKey("policies.id"))
+    # כלל שייך ל-policy גלובלי (חל על כל המכשירים איתו) או ל-override פר-מכשיר.
+    policy_id: Mapped[str | None] = mapped_column(ForeignKey("policies.id"))
+    device_id: Mapped[str | None] = mapped_column(ForeignKey("devices.id"))  # None = כלל גלובלי
     rule_type: Mapped[RuleType] = mapped_column(Enum(RuleType))
     value: Mapped[str] = mapped_column(String(500))  # domain / package name / pattern
     action: Mapped[RuleAction] = mapped_column(Enum(RuleAction))
@@ -90,7 +101,7 @@ class PolicyRule(Base):
     extra: Mapped[dict | None] = mapped_column(JSON)  # e.g. {"signature_sha256": "..."}
     expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))  # לאישורים זמניים
 
-    policy: Mapped[Policy] = relationship(back_populates="rules")
+    policy: Mapped[Policy | None] = relationship(back_populates="rules")
 
 
 class App(Base):
@@ -117,6 +128,30 @@ class OpeningRequest(Base):
     admin_note: Mapped[str | None] = mapped_column(Text)
     approved_minutes: Mapped[int | None] = mapped_column(Integer)  # None = קבוע
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)
+
+
+class EnrollmentCode(Base):
+    """קוד חד-פעמי שהמנהל מייצר ומוסר ללקוח. הלקוח מזין אותו באפליקציה כדי לקשור
+    את המכשיר למשתמש ול-policy הנכונים."""
+
+    __tablename__ = "enrollment_codes"
+
+    code: Mapped[str] = mapped_column(String(12), primary_key=True)
+    user_id: Mapped[str | None] = mapped_column(ForeignKey("users.id"))
+    policy_id: Mapped[str | None] = mapped_column(ForeignKey("policies.id"))
+    used_by_device_id: Mapped[str | None] = mapped_column(ForeignKey("devices.id"))
+    expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)
+
+    def is_valid(self, now: datetime) -> bool:
+        if self.used_by_device_id is not None:
+            return False
+        if self.expires_at is None:
+            return True
+        expires = self.expires_at
+        if expires.tzinfo is None:
+            expires = expires.replace(tzinfo=timezone.utc)
+        return expires > now
 
 
 class Event(Base):

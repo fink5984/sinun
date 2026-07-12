@@ -3,6 +3,33 @@ from datetime import datetime
 from pydantic import BaseModel
 
 
+# --- Enrollment ---
+
+class EnrollmentCodeCreate(BaseModel):
+    user_id: str | None = None
+    policy_id: str | None = None
+    expires_in_hours: int | None = 72  # ברירת מחדל: הקוד תקף 3 ימים
+
+
+class EnrollmentCodeOut(BaseModel):
+    code: str
+    user_id: str | None
+    policy_id: str | None
+    used_by_device_id: str | None
+
+    model_config = {"from_attributes": True}
+
+
+class DeviceEnroll(BaseModel):
+    """מה שהאפליקציה שולחת אחרי שהמשתמש הזין את הקוד החד-פעמי."""
+    code: str
+    device_name: str
+    android_version: str | None = None
+    manufacturer: str | None = None
+    model: str | None = None
+    agent_version: str | None = None
+
+
 # --- Devices ---
 
 class DeviceRegister(BaseModel):
@@ -73,6 +100,7 @@ class RequestCreate(BaseModel):
 class RequestDecision(BaseModel):
     admin_note: str | None = None
     approved_minutes: int | None = None  # None = אישור קבוע
+    scope: str = "device"  # "device" = רק המכשיר הזה | "global" = כל המשתמשים
 
 
 class RequestOut(BaseModel):

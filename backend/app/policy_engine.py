@@ -1,9 +1,9 @@
-"""קומפילציה של policy + rules לפורמט ה-JSON שה-agent צורך."""
+"""קומפילציה של policy גלובלי + override פר-מכשיר לפורמט ה-JSON שה-agent צורך."""
 
 import zlib
 from datetime import datetime, timezone
 
-from .models import Policy, PolicyRule, RuleAction, RuleType
+from .models import Device, Policy, PolicyRule, RuleAction, RuleType
 from .schemas import AllowedApp, BlockedApp, PolicyPayload
 
 
@@ -16,14 +16,29 @@ def _active(rule: PolicyRule) -> bool:
     return expires > datetime.now(timezone.utc)
 
 
+def compile_for_device(device: Device) -> PolicyPayload:
+    """כללי המכשיר (override, priority נמוך = גובר) מתמזגים מעל כללי ה-policy הגלובלי."""
+    policy = device.policy
+    if policy is None:
+        raise ValueError("device has no policy")
+
+    global_rules = list(policy.rules)
+    override_rules = list(device.override_rules)
+    return _compile(policy, global_rules + override_rules)
+
+
 def compile_policy(policy: Policy) -> PolicyPayload:
+    """קומפילציה של policy גלובלי בלבד (ללא הקשר מכשיר) — לתצוגה בפאנל."""
+    return _compile(policy, list(policy.rules))
+
+
+def _compile(policy: Policy, rules: list[PolicyRule]) -> PolicyPayload:
     allowed_domains: list[str] = []
     blocked_domains: list[str] = []
     allowed_apps: list[AllowedApp] = []
     blocked_apps: list[BlockedApp] = []
 
-    rules = sorted((r for r in policy.rules if _active(r)), key=lambda r: r.priority)
-    for rule in rules:
+    for rule in sorted((r for r in rules if _active(r)), key=lambda r: r.priority):
         if rule.rule_type == RuleType.domain:
             (allowed_domains if rule.action == RuleAction.allow else blocked_domains).append(rule.value)
         elif rule.rule_type == RuleType.package:

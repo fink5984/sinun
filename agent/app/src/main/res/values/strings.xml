@@ -12,4 +12,9 @@
     <string name="btn_request_opening">בקש פתיחה (דמו)</string>
     <string name="request_sent">הבקשה נשלחה למנהל</string>
     <string name="request_failed">שליחת הבקשה נכשלה: %1$s</string>
+    <string name="enroll_title">חיבור לחשבון</string>
+    <string name="enroll_message">הזן את הקוד החד-פעמי שקיבלת מהמנהל</string>
+    <string name="enroll_code_hint">לדוגמה: ABCD2345</string>
+    <string name="enroll_confirm">חבר</string>
+    <string name="enroll_failed">חיבור נכשל: %1$s</string>
 </resources>
