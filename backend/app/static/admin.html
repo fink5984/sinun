@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Sinun · פאנל ניהול</title>
+  <style>
+    :root {
+      --bg: #0d1117; --card: #161b22; --border: #30363d; --text: #e6edf3;
+      --muted: #8b949e; --accent: #2f81f7; --green: #3fb950; --red: #f85149;
+      --amber: #d29922;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; background: var(--bg); color: var(--text);
+      font-family: -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      font-size: 14px;
+    }
+    header {
+      padding: 16px 24px; border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    header h1 { font-size: 18px; margin: 0; display: flex; gap: 8px; align-items: center; }
+    header .muted { color: var(--muted); font-size: 12px; }
+    main { padding: 24px; max-width: 1100px; margin: 0 auto; }
+    .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 24px; }
+    .stat { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 16px; }
+    .stat .n { font-size: 28px; font-weight: 700; }
+    .stat .l { color: var(--muted); font-size: 12px; margin-top: 4px; }
+    .stat.warn .n { color: var(--amber); }
+    .stat.bad .n { color: var(--red); }
+    section {
+      background: var(--card); border: 1px solid var(--border); border-radius: 10px;
+      padding: 16px; margin-bottom: 20px;
+    }
+    section h2 { font-size: 15px; margin: 0 0 12px; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { text-align: right; padding: 8px 10px; border-bottom: 1px solid var(--border); }
+    th { color: var(--muted); font-weight: 500; font-size: 12px; }
+    td.mono, .mono { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 12px; }
+    .badge { padding: 2px 8px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+    .badge.ok { background: rgba(63,185,80,.15); color: var(--green); }
+    .badge.bad { background: rgba(248,81,73,.15); color: var(--red); }
+    .badge.warn { background: rgba(210,153,34,.15); color: var(--amber); }
+    button {
+      background: var(--accent); color: #fff; border: 0; border-radius: 6px;
+      padding: 7px 12px; font-size: 13px; cursor: pointer; font-weight: 500;
+    }
+    button.ghost { background: transparent; border: 1px solid var(--border); color: var(--text); }
+    button.green { background: var(--green); }
+    button.red { background: var(--red); }
+    button:disabled { opacity: .5; cursor: default; }
+    .row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+    .code-box {
+      font-family: ui-monospace, monospace; font-size: 26px; letter-spacing: 4px;
+      background: var(--bg); border: 1px dashed var(--accent); border-radius: 8px;
+      padding: 12px 20px; color: var(--accent); font-weight: 700;
+    }
+    .empty { color: var(--muted); padding: 12px; text-align: center; }
+    a { color: var(--accent); }
+    @media (max-width: 700px) { .stats { grid-template-columns: repeat(2, 1fr); } }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>🛡️ Sinun · פאנל ניהול</h1>
+    <div class="muted" id="conn">מתחבר…</div>
+  </header>
+  <main>
+    <div class="stats" id="stats"></div>
+
+    <section>
+      <h2>הצטרפות מכשיר חדש</h2>
+      <p class="muted" style="margin-top:0">צור קוד חד-פעמי, מסור אותו ללקוח, והוא יזין אותו באפליקציה כדי לחבר את המכשיר.</p>
+      <div class="row">
+        <button onclick="createCode()">➕ צור קוד הצטרפות</button>
+        <div id="new-code"></div>
+      </div>
+    </section>
+
+    <section>
+      <h2>מכשירים</h2>
+      <div id="devices"></div>
+    </section>
+
+    <section>
+      <h2>בקשות פתיחה ממתינות</h2>
+      <div id="requests"></div>
+    </section>
+
+    <section>
+      <h2>לוג חסימות אחרונות</h2>
+      <div id="events"></div>
+    </section>
+  </main>
+
+  <script>
+    const api = (p, opts) => fetch(p, opts).then(r => {
+      if (!r.ok) throw new Error(r.status);
+      return r.status === 204 ? null : r.json();
+    });
+    const esc = s => String(s ?? '').replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+    const fmtTime = t => t ? new Date(t).toLocaleString('he-IL') : '—';
+
+    async function loadStats() {
+      const s = await api('/api/stats');
+      document.getElementById('stats').innerHTML = `
+        <div class="stat"><div class="n">${s.devices}</div><div class="l">מכשירים</div></div>
+        <div class="stat ${s.unprotected ? 'bad' : ''}"><div class="n">${s.unprotected}</div><div class="l">לא מוגנים</div></div>
+        <div class="stat ${s.pending_requests ? 'warn' : ''}"><div class="n">${s.pending_requests}</div><div class="l">בקשות ממתינות</div></div>
+        <div class="stat"><div class="n">${s.blocks_today}</div><div class="l">חסימות היום</div></div>`;
+    }
+
+    async function loadDevices() {
+      const d = await api('/api/devices');
+      const el = document.getElementById('devices');
+      if (!d.length) { el.innerHTML = '<div class="empty">אין מכשירים עדיין — צור קוד הצטרפות למעלה.</div>'; return; }
+      el.innerHTML = `<table><thead><tr>
+        <th>שם מכשיר</th><th>סטטוס</th><th>Policy</th><th>נראה לאחרונה</th><th>ID</th>
+      </tr></thead><tbody>${d.map(x => {
+        const prot = x.protection_status === 'protected'
+          ? '<span class="badge ok">מוגן</span>'
+          : `<span class="badge bad">${esc(x.protection_status)}</span>`;
+        return `<tr><td>${esc(x.device_name)}</td><td>${prot}</td>
+          <td class="mono">${esc(x.policy_id || '—')}</td><td>${fmtTime(x.last_seen)}</td>
+          <td class="mono">${esc((x.id||'').slice(0,8))}</td></tr>`;
+      }).join('')}</tbody></table>`;
+    }
+
+    async function loadRequests() {
+      const r = await api('/api/requests?status=pending');
+      const el = document.getElementById('requests');
+      if (!r.length) { el.innerHTML = '<div class="empty">אין בקשות ממתינות.</div>'; return; }
+      el.innerHTML = `<table><thead><tr>
+        <th>סוג</th><th>יעד</th><th>סיבה</th><th>מכשיר</th><th>פעולות</th>
+      </tr></thead><tbody>${r.map(x => `
+        <tr>
+          <td>${x.request_type === 'domain' ? 'אתר' : 'אפליקציה'}</td>
+          <td class="mono">${esc(x.target)}</td>
+          <td>${esc(x.reason || '—')}</td>
+          <td class="mono">${esc((x.device_id||'').slice(0,8))}</td>
+          <td class="row">
+            <button class="green" onclick="approve('${x.id}','device')">אשר למכשיר</button>
+            <button class="ghost" onclick="approve('${x.id}','global')">אשר לכולם</button>
+            <button class="red" onclick="reject('${x.id}')">דחה</button>
+          </td>
+        </tr>`).join('')}</tbody></table>`;
+    }
+
+    async function loadEvents() {
+      const e = await api('/api/events?event_type=block&limit=50');
+      const el = document.getElementById('events');
+      if (!e.length) { el.innerHTML = '<div class="empty">אין אירועי חסימה עדיין.</div>'; return; }
+      el.innerHTML = `<table><thead><tr>
+        <th>זמן</th><th>מכשיר</th><th>דומיין</th><th>אפליקציה</th><th>סיבה</th>
+      </tr></thead><tbody>${e.map(x => {
+        const dt = x.details || {};
+        return `<tr><td>${fmtTime(x.created_at)}</td><td>${esc(x.device_name)}</td>
+          <td class="mono">${esc(dt.domain || '—')}</td>
+          <td class="mono">${esc(dt.package || '—')}</td>
+          <td>${esc(dt.reason || '—')}</td></tr>`;
+      }).join('')}</tbody></table>`;
+    }
+
+    async function createCode() {
+      const box = document.getElementById('new-code');
+      box.innerHTML = 'יוצר…';
+      try {
+        const c = await api('/api/enrollment/codes', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}'
+        });
+        box.innerHTML = `<span class="code-box">${esc(c.code)}</span>`;
+      } catch (e) { box.innerHTML = '<span class="badge bad">שגיאה ביצירת קוד</span>'; }
+    }
+
+    async function approve(id, scope) {
+      await api(`/api/requests/${id}/approve`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ scope })
+      });
+      refresh();
+    }
+    async function reject(id) {
+      await api(`/api/requests/${id}/reject`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}'
+      });
+      refresh();
+    }
+
+    async function refresh() {
+      try {
+        await Promise.all([loadStats(), loadDevices(), loadRequests(), loadEvents()]);
+        document.getElementById('conn').textContent = 'מחובר · עודכן ' + new Date().toLocaleTimeString('he-IL');
+      } catch (e) {
+        document.getElementById('conn').textContent = 'שגיאת חיבור לשרת';
+      }
+    }
+
+    refresh();
+    setInterval(refresh, 10000);
+  </script>
+</body>
+</html>
